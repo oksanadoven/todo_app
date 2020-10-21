@@ -1,4 +1,4 @@
-package com.example.totolist.list
+package com.example.totolist.list_cardview
 
 import android.graphics.Color
 import android.graphics.Paint

@@ -5,16 +5,14 @@ import android.view.*
 import android.widget.CalendarView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.totolist.R
 import com.example.totolist.TasksDatabase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.example.totolist.list_for_date.TaskListForDateFragment
+import com.example.totolist.utils.TaskListMode
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -27,13 +25,25 @@ class CalendarFragment : Fragment() {
     private lateinit var viewModel: CalendarViewModel
     private lateinit var calendar: CalendarView
     private lateinit var currentDate: TextView
-    private lateinit var recyclerView: RecyclerView
-    private val calendarListAdapter: CalendarListAdapter = CalendarListAdapter()
+    private val calendarInstance = Calendar.getInstance()
     var listener: Listener? = null
-    private var date: MutableLiveData<String> = MutableLiveData<String>().apply {
-        value = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(Calendar.getInstance().time)
-    }
 
+    //private var taskListForDateFragment = TaskListForDateFragment()
+    private var isSearchModeEnabled: MutableLiveData<Boolean> =
+        MutableLiveData<Boolean>().apply { value = false }
+    val mode: LiveData<TaskListMode> = MediatorLiveData<TaskListMode>().apply {
+        value = TaskListMode.Normal
+        addSource(isSearchModeEnabled) {
+            value = if (isSearchModeEnabled.value!!) {
+                TaskListMode.Search
+            } else {
+                TaskListMode.Normal
+            }
+        }
+    }
+    private val date = MutableLiveData<String>().apply {
+        value = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(calendarInstance.time)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,43 +72,40 @@ class CalendarFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        val calendarInstance = Calendar.getInstance()
+        openFragmentForDate()
         calendar.setOnDateChangeListener { view, year, month, dayOfMonth ->
             calendarInstance.set(year, month, dayOfMonth)
             val dateFormatter = SimpleDateFormat("EEEE d, MMM", Locale.ROOT)
             val formattedDate = dateFormatter.format(calendarInstance.time)
             date.value = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(calendarInstance.time)
             currentDate.text = formattedDate
-            syncCalendarItemsWithDate()
+            openFragmentForDate()
         }
-        recyclerView.adapter = calendarListAdapter
-        recyclerView.layoutManager = LinearLayoutManager(activity, RecyclerView.VERTICAL, false)
-        syncCalendarItemsWithDate()
-        calendarListAdapter.listener = object : CalendarListAdapter.OnItemChecked {
-            override fun onItemChecked(itemId: Long, isDone: Boolean) {
-                lifecycleScope.launch {
-                    viewModel.updateTaskItems(itemId, isDone)
-                }
+        viewModel.taskItemsLiveData.observe(this, { taskList ->
+            if (mode.value is TaskListMode.Search) {
+                activity!!.supportFragmentManager.beginTransaction()
+                    .replace(
+                        R.id.calendar_fragment_container,
+                        TaskListForDateFragment().apply { setSearchList(taskList) })
+                    .commit()
             }
-        }
-    }
-
-    private fun syncCalendarItemsWithDate() {
-        lifecycleScope.launch {
-            val items = viewModel.getCalendarItemsByDate(date.value!!)
-            withContext(Dispatchers.Main) {
-                calendarListAdapter.submitList(items)
-            }
-        }
+        })
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         calendar = view.findViewById(R.id.calendar_view)
         currentDate = view.findViewById(R.id.current_date)
-        recyclerView = view.findViewById(R.id.calendar_recycler_view)
         calendar.setDate(System.currentTimeMillis(), false, true)
         currentDate.text = SimpleDateFormat("EEEE d, MMM", Locale.ROOT).format(calendar.date)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        val showDiscardIcon = mode.value is TaskListMode.Search
+        menu.findItem(R.id.action_discard_selection).isVisible = showDiscardIcon
+        menu.findItem(R.id.icon_action_search).isVisible = !showDiscardIcon
+        menu.findItem(R.id.icon_action_add).isVisible = mode.value is TaskListMode.Normal
+        super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -107,9 +114,34 @@ class CalendarFragment : Fragment() {
                 listener?.onActionAddSelected(0L, date.value)
                 true
             }
+            R.id.icon_action_search -> {
+                if (isSearchModeEnabled.value == false) {
+                    isSearchModeEnabled.value = true
+                }
+                true
+            }
+            R.id.action_discard_selection -> {
+                if (mode.value is TaskListMode.Search) {
+                    isSearchModeEnabled.value = false
+                    setQuery("")
+                }
+                true
+            }
             else -> false
         }
     }
 
-    companion object
+    private fun openFragmentForDate() {
+        activity!!.supportFragmentManager.beginTransaction()
+            .replace(R.id.calendar_fragment_container, TaskListForDateFragment().apply {
+                arguments = Bundle().apply {
+                    putString(TaskListForDateFragment.ARG_TASK_DATE, date.value)
+                }
+            })
+            .commit()
+    }
+
+    fun setQuery(text: String) {
+        viewModel.setQuery(text)
+    }
 }

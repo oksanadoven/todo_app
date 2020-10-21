@@ -12,7 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.example.totolist.calendar.CalendarFragment
 import com.example.totolist.details.TaskDetailsFragment
-import com.example.totolist.list.TaskListFragment
+import com.example.totolist.list_cardview.TaskListFragment
 import com.example.totolist.utils.TaskListMode
 
 class MainActivity : AppCompatActivity() {
@@ -40,6 +40,34 @@ class MainActivity : AppCompatActivity() {
                     openTaskScreen(id, date)
                 }
             }
+            val observer = Observer<TaskListMode> { mode ->
+                val checkedItemsText = findViewById<TextView>(R.id.checked_items_text)
+                val searchField = findViewById<EditText>(R.id.search_field)
+                when (mode) {
+                    is TaskListMode.Normal -> {
+                        checkedItemsText.text = ""
+                        searchField.isVisible = false
+                        supportActionBar?.setDisplayShowTitleEnabled(true)
+                    }
+                    is TaskListMode.Search -> {
+                        supportActionBar?.setDisplayShowTitleEnabled(false)
+                        searchField.isVisible = true
+                        searchField.setText("", TextView.BufferType.EDITABLE)
+                        searchField.doOnTextChanged { text, _, _, _ ->
+                            fragment.setQuery(text.toString())
+                        }
+                        searchField.setOnFocusChangeListener { v, hasFocus ->
+                            if (v.id == R.id.search_field && !hasFocus) {
+                                val inputMethodManager: InputMethodManager =
+                                    getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                                inputMethodManager.hideSoftInputFromWindow(v.windowToken, 0)
+                            }
+                        }
+                    }
+                }
+                invalidateOptionsMenu()
+            }
+            fragment.mode.observe(this, observer)
         }
         if (fragment is TaskListFragment) {
             fragment.listener = object : TaskListFragment.Listener {
