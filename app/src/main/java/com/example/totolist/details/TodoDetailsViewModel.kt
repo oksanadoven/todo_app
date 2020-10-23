@@ -5,7 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import com.example.totolist.Task
 import com.example.totolist.TaskItem
 import com.example.totolist.TaskWithItems
-import com.example.totolist.TasksDatabaseDao
+import com.example.totolist.database.TasksDatabaseDao
 
 class TodoDetailsViewModel(
     dataSource: TasksDatabaseDao,

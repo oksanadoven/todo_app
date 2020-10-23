@@ -47,7 +47,7 @@
         android:layout_marginBottom="1dp"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="@color/coloTextPrimary"
+        android:textColor="@color/colorTextPrimary"
         app:layout_constraintBottom_toTopOf="@id/details_recycler_view"
         app:layout_constraintStart_toEndOf="@id/edit_text_header"
         tools:text="NOV 23" />

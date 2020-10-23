@@ -1,9 +1,11 @@
-package com.example.totolist
+package com.example.totolist.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.totolist.Task
+import com.example.totolist.TaskItem
 
 @Database(entities = [Task::class, TaskItem::class], version = 1, exportSchema = false)
 abstract class TasksDatabase: RoomDatabase() {

@@ -2,11 +2,14 @@
 <resources>
     <color name="colorPrimary">#e0bab4</color>
     <color name="colorPrimaryDark">#ae8a84</color>
+    <color name="colorPrimaryDarkTransparent">#e7cbc6</color>
+    <color name="colorPrimaryDarkSelect">#efdbd8</color>
     <color name="colorAccent">#c6c09c</color>
     <color name="colorPrimaryLight">#f8eae3</color>
     <color name="background">#F4F4F4</color>
     <color name="colorText">#FFFFFF</color>
-    <color name="coloTextPrimary">#c9c9c9</color>
+    <color name="colorTextPrimary">#c9c9c9</color>
+    <color name="colorTextPrimaryDark">#787878</color>
     <color name="colorTextSecondary">#757575</color>
     <color name="colorCheckedItem">#faebee</color>
 

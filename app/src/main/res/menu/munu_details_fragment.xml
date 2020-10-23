@@ -5,7 +5,7 @@
     <item
         android:id="@+id/icon_action_search"
         android:icon="@drawable/ic_action_search"
-        android:iconTint="@color/coloTextPrimary"
+        android:iconTint="@color/colorTextPrimary"
         android:orderInCategory="100"
         android:title="@string/action_icon_search"
         app:showAsAction="collapseActionView|ifRoom"

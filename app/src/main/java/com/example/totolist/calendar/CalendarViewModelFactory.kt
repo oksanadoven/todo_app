@@ -3,7 +3,7 @@ package com.example.totolist.calendar
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.totolist.TasksDatabaseDao
+import com.example.totolist.database.TasksDatabaseDao
 
 class CalendarViewModelFactory (
     private val dataSource: TasksDatabaseDao,

@@ -65,7 +65,7 @@ class TaskDetailsAdapter : ListAdapter<TaskItem, TaskDetailsAdapter.TaskDetailsV
                 holder.taskText.setTextColor(holder.taskText.context.resources.getColor(R.color.colorTextSecondary))
                 holder.taskText.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
             } else {
-                holder.taskText.setTextColor(holder.taskText.context.resources.getColor(R.color.coloTextPrimary))
+                holder.taskText.setTextColor(holder.taskText.context.resources.getColor(R.color.colorTextPrimary))
                 holder.taskText.paintFlags = 0
             }
             submitList(currentList.sorted())

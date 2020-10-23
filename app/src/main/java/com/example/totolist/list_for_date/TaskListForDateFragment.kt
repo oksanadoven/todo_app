@@ -11,8 +11,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.totolist.R
 import com.example.totolist.TaskListItem
-import com.example.totolist.TasksDatabase
 import com.example.totolist.calendar.*
+import com.example.totolist.database.TasksDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -87,7 +87,6 @@ class TaskListForDateFragment : Fragment() {
 
 
     companion object {
-        const val ARG_TASK_ID = "ARG_TASK_ID"
         const val ARG_TASK_DATE = "ARG_TASK_DATE"
     }
 }

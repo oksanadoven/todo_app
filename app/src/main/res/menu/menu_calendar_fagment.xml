@@ -20,7 +20,7 @@
     <item
         android:id="@+id/action_discard_selection"
         android:icon="@drawable/ic_action_close"
-        android:iconTint="@color/coloTextPrimary"
+        android:iconTint="@color/colorTextPrimary"
         android:orderInCategory="500"
         android:title="@string/delete_list"
         app:showAsAction="ifRoom"

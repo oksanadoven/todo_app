@@ -10,7 +10,7 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import com.example.totolist.R
-import com.example.totolist.TasksDatabase
+import com.example.totolist.database.TasksDatabase
 import com.example.totolist.list_for_date.TaskListForDateFragment
 import com.example.totolist.utils.TaskListMode
 import java.text.SimpleDateFormat

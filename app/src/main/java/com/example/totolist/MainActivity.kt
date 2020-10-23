@@ -11,6 +11,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.example.totolist.calendar.CalendarFragment
+import com.example.totolist.calendar_day.CalendarDailyFragment
 import com.example.totolist.details.TaskDetailsFragment
 import com.example.totolist.list_cardview.TaskListFragment
 import com.example.totolist.utils.TaskListMode
@@ -25,7 +26,8 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction()
                 .replace(
                     R.id.fragment_container,
-                    CalendarFragment()
+                    CalendarDailyFragment()
+                    //CalendarFragment()
                     //TaskListFragment()
                 )
                 .commit()
@@ -68,6 +70,13 @@ class MainActivity : AppCompatActivity() {
                 invalidateOptionsMenu()
             }
             fragment.mode.observe(this, observer)
+        }
+        if (fragment is CalendarDailyFragment) {
+            fragment.onClickListener = object : CalendarDailyFragment.OnMenuClickListener {
+                override fun onActionAddClicked(id: Long, date: String) {
+                    openTaskScreen(id, date)
+                }
+            }
         }
         if (fragment is TaskListFragment) {
             fragment.listener = object : TaskListFragment.Listener {

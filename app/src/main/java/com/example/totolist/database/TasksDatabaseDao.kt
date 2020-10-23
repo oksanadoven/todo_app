@@ -1,7 +1,10 @@
-package com.example.totolist
+package com.example.totolist.database
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import com.example.totolist.Task
+import com.example.totolist.TaskItem
+import com.example.totolist.TaskWithItems
 
 @Dao
 interface TasksDatabaseDao {

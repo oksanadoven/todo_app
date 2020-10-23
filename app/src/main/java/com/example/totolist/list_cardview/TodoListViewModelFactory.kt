@@ -3,7 +3,7 @@ package com.example.totolist.list_cardview
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.totolist.TasksDatabaseDao
+import com.example.totolist.database.TasksDatabaseDao
 
 /**
  * This is pretty much boiler plate code for a ViewModel Factory.

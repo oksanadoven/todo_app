@@ -10,7 +10,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.totolist.*
+import com.example.totolist.R
+import com.example.totolist.Task
+import com.example.totolist.TaskItem
+import com.example.totolist.TaskWithItems
+import com.example.totolist.database.TasksDatabase
 import com.example.totolist.utils.TaskItemDivider
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers

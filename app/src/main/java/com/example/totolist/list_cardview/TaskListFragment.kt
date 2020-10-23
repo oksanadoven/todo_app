@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.totolist.R
 import com.example.totolist.TaskListItem
-import com.example.totolist.TasksDatabase
+import com.example.totolist.database.TasksDatabase
 import com.example.totolist.utils.TaskListMode
 import com.example.totolist.utils.TaskListMode.Normal
 import com.example.totolist.utils.TaskListMode.Select
