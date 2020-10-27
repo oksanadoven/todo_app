@@ -27,7 +27,6 @@
             tools:text="Friday, Oct 23"
             android:layout_marginLeft="24dp" />
 
-
         <TextView
             android:id="@+id/tasks_total"
             android:layout_width="match_parent"
@@ -42,11 +41,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/tasks_total"
-            android:layout_marginStart="24dp"
-            android:layout_marginLeft="24dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
             android:layout_marginTop="24dp"
+            android:orientation="horizontal"
+            tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/calendar_day_card"
             android:layout_marginBottom="12dp"
-            android:clipToPadding="true"/>
+            android:clipToPadding="false"/>
 
     </RelativeLayout>
 

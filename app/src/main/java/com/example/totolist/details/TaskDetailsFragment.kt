@@ -86,7 +86,10 @@ class TaskDetailsFragment : Fragment() {
         }
         val taskId =
             arguments?.getLong(ARG_TASK_ID) ?: throw IllegalArgumentException("No task id provided")
-        val date = arguments?.getString(ARG_TASK_DATE) ?: SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(Calendar.getInstance().time)
+        val date = arguments?.getString(ARG_TASK_DATE) ?: SimpleDateFormat(
+            "yyyy-MM-dd",
+            Locale.ROOT
+        ).format(Calendar.getInstance().time)
         if (taskId != 0L) {
             lifecycleScope.launch {
                 taskWithItems = viewModel.getTaskWithItems(taskId)
@@ -96,10 +99,11 @@ class TaskDetailsFragment : Fragment() {
             taskWithItems = TaskWithItems(Task(header = "", date = date), emptyList())
             renderTask(taskWithItems)
         }
-        val currentDate = SimpleDateFormat("MMM d", Locale.getDefault()).format(Date()).toUpperCase(
-            Locale.ROOT
-        )
-        dateHeader.text = currentDate
+        val calendar = Calendar.getInstance()
+        val dateFormat = SimpleDateFormat("MMM d", Locale.ROOT)
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).parse(date)
+        calendar.time = currentDate!!
+        dateHeader.text = dateFormat.format(calendar.time)
     }
 
     private fun renderTask(taskWithItems: TaskWithItems) {

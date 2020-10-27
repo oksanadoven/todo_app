@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -44,6 +45,7 @@ class DayCardAdapter : ListAdapter<CalendarDay, DayCardAdapter.DayCardViewHolder
     }
 
     var listener: OnItemClickListener? = null
+    private val itemsLimit = 1825
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DayCardViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -77,7 +79,16 @@ class DayCardAdapter : ListAdapter<CalendarDay, DayCardAdapter.DayCardViewHolder
                 R.color.colorPrimaryDark
             }
         )
-        holder.itemView.setBackgroundColor(color)
+        val cardView: CardView = holder.itemView.findViewById(R.id.day_card)
+        cardView.setCardBackgroundColor(color)
+    }
+
+    override fun getItemCount(): Int {
+        return if (currentList.size > itemsLimit) {
+            itemsLimit
+        } else {
+            currentList.size
+        }
     }
 
 }

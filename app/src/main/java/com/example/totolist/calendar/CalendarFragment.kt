@@ -3,6 +3,7 @@ package com.example.totolist.calendar
 import android.os.Bundle
 import android.view.*
 import android.widget.CalendarView
+import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
@@ -98,6 +99,9 @@ class CalendarFragment : Fragment() {
         currentDate = view.findViewById(R.id.current_date)
         calendar.setDate(System.currentTimeMillis(), false, true)
         currentDate.text = SimpleDateFormat("EEEE d, MMM", Locale.ROOT).format(calendar.date)
+        view.findViewById<FrameLayout>(R.id.calendar_fragment_container).setOnClickListener {
+             //TODO implement listener
+        }
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
@@ -132,7 +136,7 @@ class CalendarFragment : Fragment() {
     }
 
     private fun openFragmentForDate() {
-        activity!!.supportFragmentManager.beginTransaction()
+        childFragmentManager.beginTransaction()
             .replace(R.id.calendar_fragment_container, TaskListForDateFragment().apply {
                 arguments = Bundle().apply {
                     putString(TaskListForDateFragment.ARG_TASK_DATE, date.value)
@@ -141,7 +145,7 @@ class CalendarFragment : Fragment() {
             .commit()
     }
 
-    fun setQuery(text: String) {
+    private fun setQuery(text: String) {
         viewModel.setQuery(text)
     }
 }

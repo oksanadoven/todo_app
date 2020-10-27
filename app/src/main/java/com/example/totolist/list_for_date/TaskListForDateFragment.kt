@@ -4,6 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -19,10 +24,18 @@ import kotlinx.coroutines.withContext
 
 class TaskListForDateFragment : Fragment() {
 
+    interface OnClickListener {
+        fun onAddButtonClicked(id: Long, date: String)
+    }
+
     private lateinit var calendarViewModel: CalendarViewModel
     private lateinit var recyclerView: RecyclerView
     private val calendarListAdapter: CalendarListAdapter = CalendarListAdapter()
-
+    private lateinit var image: ImageView
+    private lateinit var text: TextView
+    private lateinit var addButton: Button
+    private lateinit var emptyListVew: ConstraintLayout
+    var listener: OnClickListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +71,7 @@ class TaskListForDateFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         recyclerView = view.findViewById(R.id.calendar_recycler_view)
+        emptyListVew = view.findViewById(R.id.empty_list)
     }
 
     private fun syncCalendarItemsWithDate() {
@@ -67,6 +81,19 @@ class TaskListForDateFragment : Fragment() {
                 val items = calendarViewModel.getCalendarItemsByDate(date)
                 withContext(Dispatchers.Main) {
                     calendarListAdapter.submitList(items)
+                }
+                if (items.isEmpty()) {
+                    emptyListVew.isVisible = true
+                    recyclerView.isVisible = false
+                    image = view?.findViewById(R.id.image)!!
+                    text = view?.findViewById(R.id.text)!!
+                    addButton = view?.findViewById(R.id.empty_add_button)!!
+                    addButton.setOnClickListener {
+                        listener?.onAddButtonClicked(0L, date)
+                    }
+                } else {
+                    emptyListVew.isVisible = false
+                    recyclerView.isVisible = true
                 }
             }
         }
