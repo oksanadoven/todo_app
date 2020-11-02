@@ -2,9 +2,9 @@ package com.example.totolist.details
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import com.example.totolist.Task
-import com.example.totolist.TaskItem
-import com.example.totolist.TaskWithItems
+import com.example.totolist.database.Task
+import com.example.totolist.database.TaskItem
+import com.example.totolist.database.TaskWithItems
 import com.example.totolist.database.TasksDatabaseDao
 
 class TodoDetailsViewModel(

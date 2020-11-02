@@ -1,4 +1,4 @@
-package com.example.totolist
+package com.example.totolist.tabs_fragment
 
 import android.os.Bundle
 import android.view.View
@@ -7,8 +7,9 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.viewpager2.widget.ViewPager2
-import com.example.totolist.calendar.CalendarFragment
-import com.example.totolist.calendar_day.CalendarDailyFragment
+import com.example.totolist.R
+import com.example.totolist.day_fragment.DayFragment
+import com.example.totolist.month_fragment.MonthFragment
 import com.example.totolist.utils.TaskListMode
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -16,7 +17,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 class TabsFragment : Fragment(R.layout.fragment_tabs) {
 
     interface OnAddListClickListener {
-        fun onAddButtonClicked(id: Long, date: String)
+        fun onAddButtonClicked(id: Long, date: Long)
     }
 
     private val tabTitles = arrayOf("Month", "Day")
@@ -39,10 +40,10 @@ class TabsFragment : Fragment(R.layout.fragment_tabs) {
 
     override fun onAttachFragment(childFragment: Fragment) {
         super.onAttachFragment(childFragment)
-        if (childFragment is CalendarFragment) {
-            childFragment.listener = object : CalendarFragment.Listener {
-                override fun onActionAddSelected(id: Long, date: String?) {
-                    tabFragmentClickListener?.onAddButtonClicked(id, date!!)
+        if (childFragment is MonthFragment) {
+            childFragment.listener = object : MonthFragment.Listener {
+                override fun onActionAddSelected(id: Long, date: Long) {
+                    tabFragmentClickListener?.onAddButtonClicked(id, date)
                 }
             }
             val observer = Observer<TaskListMode> { mode ->
@@ -74,9 +75,9 @@ class TabsFragment : Fragment(R.layout.fragment_tabs) {
             }
             childFragment.mode.observe(this, observer)
         }
-        if (childFragment is CalendarDailyFragment) {
-            childFragment.onClickListener = object : CalendarDailyFragment.OnMenuClickListener {
-                override fun onActionAddClicked(id: Long, date: String) {
+        if (childFragment is DayFragment) {
+            childFragment.onClickListener = object : DayFragment.OnMenuClickListener {
+                override fun onActionAddClicked(id: Long, date: Long) {
                     tabFragmentClickListener?.onAddButtonClicked(id, date)
                 }
             }

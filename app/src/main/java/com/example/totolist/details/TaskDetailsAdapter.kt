@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.totolist.R
-import com.example.totolist.TaskItem
+import com.example.totolist.database.TaskItem
 import kotlinx.android.synthetic.main.task_list_details_checkboxes.view.*
 
 class TaskDetailsAdapter : ListAdapter<TaskItem, TaskDetailsAdapter.TaskDetailsViewHolder>(

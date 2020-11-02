@@ -12,12 +12,15 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.example.totolist.details.TaskDetailsFragment
 import com.example.totolist.list_cardview.TaskListFragment
+import com.example.totolist.tabs_fragment.TabsFragment
 import com.example.totolist.utils.TaskListMode
+import com.jakewharton.threetenabp.AndroidThreeTen
 
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AndroidThreeTen.init(this)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
         if (savedInstanceState == null) {
@@ -34,14 +37,14 @@ class MainActivity : AppCompatActivity() {
         super.onAttachFragment(fragment)
         if (fragment is TabsFragment) {
             fragment.tabFragmentClickListener = object : TabsFragment.OnAddListClickListener {
-                override fun onAddButtonClicked(id: Long, date: String) {
+                override fun onAddButtonClicked(id: Long, date: Long) {
                     openTaskScreen(id, date)
                 }
             }
         }
         if (fragment is TaskListFragment) {
             fragment.listener = object : TaskListFragment.Listener {
-                override fun onTaskSelected(id: Long, date: String?) {
+                override fun onTaskSelected(id: Long, date: Long) {
                     openTaskScreen(id, date)
                 }
             }
@@ -87,14 +90,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun openTaskScreen(id: Long, date: String?) {
+    private fun openTaskScreen(id: Long, date: Long) {
         supportFragmentManager.beginTransaction()
             .replace(
                 R.id.fragment_container,
                 TaskDetailsFragment().apply {
                     arguments = Bundle().apply {
                         putLong(TaskDetailsFragment.ARG_TASK_ID, id)
-                        putString(TaskDetailsFragment.ARG_TASK_DATE, date)
+                        putLong(TaskDetailsFragment.ARG_TASK_DATE, date)
                     }
                 })
             .addToBackStack(null)

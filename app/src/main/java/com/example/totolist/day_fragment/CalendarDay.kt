@@ -1,10 +1,8 @@
-package com.example.totolist.calendar_day
+package com.example.totolist.day_fragment
 
 data class CalendarDay(
     val currentDate: String,
     val dayOfWeek: String,
-    val dateInMs: Long,
-    val databaseDate: String,
+    val databaseDate: Long,
     var isSelected: Boolean = false
-) {
-}
+)

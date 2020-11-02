@@ -1,7 +1,7 @@
-package com.example.totolist.calendar
+package com.example.totolist.month_fragment
 
 import com.example.totolist.R
-import com.example.totolist.TaskItem
+import com.example.totolist.database.TaskItem
 
 data class CalendarTaskCheckboxItem(
     val item: TaskItem

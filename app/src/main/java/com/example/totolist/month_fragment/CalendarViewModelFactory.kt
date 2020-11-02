@@ -1,22 +1,18 @@
-package com.example.totolist.calendar
+package com.example.totolist.month_fragment
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.totolist.database.TasksDatabaseDao
 
 class CalendarViewModelFactory (
-    private val dataSource: TasksDatabaseDao,
-    private val application: Application
+    dataSource: TasksDatabaseDao
 ): ViewModelProvider.Factory {
+    private val database = dataSource
 
     @Suppress ("unchecked cast")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(CalendarViewModel::class.java)) {
-            return CalendarViewModel(
-                dataSource,
-                application
-            ) as T
+            return CalendarViewModel(database) as T
         }
         throw IllegalArgumentException("Unknown ViewModel Class")
     }

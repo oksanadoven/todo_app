@@ -11,17 +11,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.totolist.R
-import com.example.totolist.Task
-import com.example.totolist.TaskItem
-import com.example.totolist.TaskWithItems
+import com.example.totolist.database.Task
+import com.example.totolist.database.TaskItem
+import com.example.totolist.database.TaskWithItems
 import com.example.totolist.database.TasksDatabase
 import com.example.totolist.utils.TaskItemDivider
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.*
+import org.threeten.bp.Instant
+import org.threeten.bp.ZoneId
+import org.threeten.bp.format.DateTimeFormatter
 
 class TaskDetailsFragment : Fragment() {
 
@@ -86,24 +87,19 @@ class TaskDetailsFragment : Fragment() {
         }
         val taskId =
             arguments?.getLong(ARG_TASK_ID) ?: throw IllegalArgumentException("No task id provided")
-        val date = arguments?.getString(ARG_TASK_DATE) ?: SimpleDateFormat(
-            "yyyy-MM-dd",
-            Locale.ROOT
-        ).format(Calendar.getInstance().time)
+        val date = arguments?.getLong(ARG_TASK_DATE)
         if (taskId != 0L) {
             lifecycleScope.launch {
                 taskWithItems = viewModel.getTaskWithItems(taskId)
                 renderTask(taskWithItems)
             }
         } else {
-            taskWithItems = TaskWithItems(Task(header = "", date = date), emptyList())
+            taskWithItems = TaskWithItems(Task(header = "", date = date!!), emptyList())
             renderTask(taskWithItems)
         }
-        val calendar = Calendar.getInstance()
-        val dateFormat = SimpleDateFormat("MMM d", Locale.ROOT)
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).parse(date)
-        calendar.time = currentDate!!
-        dateHeader.text = dateFormat.format(calendar.time)
+        val currentDate = Instant.ofEpochMilli(date!!).atZone(ZoneId.systemDefault())
+            .toLocalDate().format(DateTimeFormatter.ofPattern("MMM d"))
+        dateHeader.text = currentDate
     }
 
     private fun renderTask(taskWithItems: TaskWithItems) {

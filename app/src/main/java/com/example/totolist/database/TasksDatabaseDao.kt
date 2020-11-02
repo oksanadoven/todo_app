@@ -2,9 +2,6 @@ package com.example.totolist.database
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.example.totolist.Task
-import com.example.totolist.TaskItem
-import com.example.totolist.TaskWithItems
 
 @Dao
 interface TasksDatabaseDao {
@@ -36,7 +33,7 @@ interface TasksDatabaseDao {
     suspend fun getTaskWithItems(taskId: Long): TaskWithItems
 
     @Query("SELECT * from tasks WHERE date = :date")
-    suspend fun getTaskWithItemsByDate(date: String): List<TaskWithItems>
+    suspend fun getTaskWithItemsByDate(date: Long): List<TaskWithItems>
 
 /*
     @Query("SELECT * from tasks ORDER BY id DESC LIMIT 1")

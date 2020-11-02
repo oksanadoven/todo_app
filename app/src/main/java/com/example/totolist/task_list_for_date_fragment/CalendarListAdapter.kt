@@ -1,4 +1,4 @@
-package com.example.totolist.list_for_date
+package com.example.totolist.task_list_for_date_fragment
 
 import android.graphics.Paint
 import android.view.LayoutInflater
@@ -10,9 +10,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.totolist.R
-import com.example.totolist.calendar.CalendarListItem
-import com.example.totolist.calendar.CalendarTaskCheckboxItem
-import com.example.totolist.calendar.CalendarTaskHeaderItem
+import com.example.totolist.month_fragment.CalendarListItem
+import com.example.totolist.month_fragment.CalendarTaskCheckboxItem
+import com.example.totolist.month_fragment.CalendarTaskHeaderItem
 
 class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolder>(
     TasksDiffCallback()

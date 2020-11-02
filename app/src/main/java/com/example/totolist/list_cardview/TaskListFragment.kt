@@ -10,20 +10,17 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.totolist.R
-import com.example.totolist.TaskListItem
 import com.example.totolist.database.TasksDatabase
 import com.example.totolist.utils.TaskListMode
 import com.example.totolist.utils.TaskListMode.Normal
 import com.example.totolist.utils.TaskListMode.Select
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 class TaskListFragment : Fragment() {
 
     interface Listener {
-        fun onTaskSelected(id: Long, date: String?)
+        fun onTaskSelected(id: Long, date: Long)
     }
 
     var listener: Listener? = null
@@ -81,7 +78,7 @@ class TaskListFragment : Fragment() {
         recyclerView.adapter = taskListAdapter
         recyclerView.layoutManager =
             StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-        taskListAdapter.onItemClickListener = object :
+/*        taskListAdapter.onItemClickListener = object :
             TaskListAdapter.OnItemClickListener {
             override fun onItemSelected(item: TaskListItem) {
                 listener?.onTaskSelected(item.taskWithItems.task.id, SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(Calendar.getInstance().time))
@@ -89,7 +86,7 @@ class TaskListFragment : Fragment() {
         }
         fabAdd.setOnClickListener {
             listener?.onTaskSelected(0L, SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(Calendar.getInstance().time))
-        }
+        }*/
         return rootView
     }
 

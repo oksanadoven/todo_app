@@ -1,4 +1,4 @@
-package com.example.totolist
+package com.example.totolist.database
 
 import androidx.room.*
 
@@ -33,7 +33,7 @@ data class Task(
     @ColumnInfo(name = "title")
     var header: String,
     @ColumnInfo(name = "date")
-    val date: String
+    val date: Long
 )
 
 data class TaskWithItems(

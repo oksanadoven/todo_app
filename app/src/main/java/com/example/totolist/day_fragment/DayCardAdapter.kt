@@ -1,4 +1,4 @@
-package com.example.totolist.calendar_day
+package com.example.totolist.day_fragment
 
 import android.view.LayoutInflater
 import android.view.View
@@ -32,7 +32,7 @@ class DayCardAdapter : ListAdapter<CalendarDay, DayCardAdapter.DayCardViewHolder
             oldItem: CalendarDay,
             newItem: CalendarDay
         ): Boolean {
-            return oldItem.dateInMs == newItem.dateInMs
+            return oldItem.databaseDate == newItem.databaseDate
         }
 
         override fun areContentsTheSame(
