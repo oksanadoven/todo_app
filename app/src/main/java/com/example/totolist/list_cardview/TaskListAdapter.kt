@@ -1,22 +1,8 @@
 package com.example.totolist.list_cardview
 
-import android.graphics.Color
-import android.graphics.Paint
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.CheckBox
-import android.widget.TextView
-import androidx.core.view.isVisible
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
-import com.example.totolist.R
-import com.example.totolist.TaskListItem
-import kotlinx.android.synthetic.main.card_item.view.*
 
+
+/*
 class TaskListAdapter : ListAdapter<TaskListItem, TaskListAdapter.TaskViewHolder>(
     TasksDiffCallback()
 ) {
@@ -27,16 +13,6 @@ class TaskListAdapter : ListAdapter<TaskListItem, TaskListAdapter.TaskViewHolder
 
     class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val listHeader: TextView = itemView.list_header
-        val task1: TextView = itemView.task_1
-        val task2: TextView = itemView.task_2
-        val task3: TextView = itemView.task_3
-        val task4: TextView = itemView.task_4
-        val task5: TextView = itemView.task_5
-        val taskCheckBox1: CheckBox = itemView.task_1_checkbox
-        val taskCheckBox2: CheckBox = itemView.task_2_checkbox
-        val taskCheckBox3: CheckBox = itemView.task_3_checkbox
-        val taskCheckBox4: CheckBox = itemView.task_4_checkbox
-        val taskCheckBox5: CheckBox = itemView.task_5_checkbox
     }
 
     private class TasksDiffCallback : DiffUtil.ItemCallback<TaskListItem>() {
@@ -55,7 +31,7 @@ class TaskListAdapter : ListAdapter<TaskListItem, TaskListAdapter.TaskViewHolder
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val itemView = inflater.inflate(R.layout.card_item, parent, false)
+        val itemView = inflater.inflate(R.layout.search_card_item, parent, false)
         val holder = TaskViewHolder(itemView)
         itemView.setOnClickListener {
             val position = holder.adapterPosition
@@ -107,7 +83,8 @@ class TaskListAdapter : ListAdapter<TaskListItem, TaskListAdapter.TaskViewHolder
         holder: TaskViewHolder,
         currentItem: TaskListItem
     ) {
-        hideAllViews(holder)
+*/
+/*        hideAllViews(holder)
         val taskItemsList = currentItem.taskWithItems.items
         var i = 0
         if (taskItemsList.isNotEmpty()) {
@@ -122,7 +99,8 @@ class TaskListAdapter : ListAdapter<TaskListItem, TaskListAdapter.TaskViewHolder
                 i++
             }
         }
-    }
+    }*//*
+
 
     private fun setTaskItemStyle(
         taskText: TextView,
@@ -182,4 +160,5 @@ class TaskListAdapter : ListAdapter<TaskListItem, TaskListAdapter.TaskViewHolder
         }
     }
 }
+*/
 

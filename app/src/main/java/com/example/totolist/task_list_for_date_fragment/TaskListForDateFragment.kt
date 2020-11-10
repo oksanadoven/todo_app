@@ -1,6 +1,7 @@
 package com.example.totolist.task_list_for_date_fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +25,8 @@ import com.example.totolist.month_fragment.CalendarTaskHeaderItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.threeten.bp.Instant
+import org.threeten.bp.ZoneId
 
 class TaskListForDateFragment : Fragment() {
 
@@ -92,8 +95,10 @@ class TaskListForDateFragment : Fragment() {
     private fun syncCalendarItemsWithDate() {
         val date = arguments?.getLong(ARG_TASK_DATE)
         if (date != null) {
+            val dateUTC = Instant.ofEpochMilli(date).atZone(ZoneId.of("UTC")).toInstant().toEpochMilli()
+            Log.d("AAA", "get items by date ${Instant.ofEpochMilli(dateUTC).atZone(ZoneId.of("UTC")).toLocalDateTime()}")
             lifecycleScope.launch {
-                val items = taskListForDateViewModel.getCalendarItemsByDate(date)
+                val items = taskListForDateViewModel.getCalendarItemsByDate(dateUTC)
                 withContext(Dispatchers.Main) {
                     calendarListAdapter.submitList(items)
                 }

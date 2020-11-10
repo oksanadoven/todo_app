@@ -1,3 +1,4 @@
+/*
 package com.example.totolist.list_cardview
 
 import android.os.Bundle
@@ -78,6 +79,7 @@ class TaskListFragment : Fragment() {
         recyclerView.adapter = taskListAdapter
         recyclerView.layoutManager =
             StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+*/
 /*        taskListAdapter.onItemClickListener = object :
             TaskListAdapter.OnItemClickListener {
             override fun onItemSelected(item: TaskListItem) {
@@ -86,7 +88,8 @@ class TaskListFragment : Fragment() {
         }
         fabAdd.setOnClickListener {
             listener?.onTaskSelected(0L, SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(Calendar.getInstance().time))
-        }*/
+        }*//*
+
         return rootView
     }
 
@@ -149,3 +152,4 @@ class TaskListFragment : Fragment() {
     }
 
 }
+*/

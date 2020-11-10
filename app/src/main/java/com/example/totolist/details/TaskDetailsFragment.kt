@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
+import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
 
 class TaskDetailsFragment : Fragment() {
@@ -59,7 +60,7 @@ class TaskDetailsFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.munu_details_fragment, menu)
+        inflater.inflate(R.menu.menu_calendar_fagment, menu)
     }
 
     override fun onCreateView(
@@ -88,16 +89,26 @@ class TaskDetailsFragment : Fragment() {
         val taskId =
             arguments?.getLong(ARG_TASK_ID) ?: throw IllegalArgumentException("No task id provided")
         val date = arguments?.getLong(ARG_TASK_DATE)
+        val dateUTC =
+            Instant.ofEpochMilli(date!!).atZone(ZoneId.of("UTC")).toLocalDate().atStartOfDay()
+                .toInstant(
+                    ZoneOffset.UTC
+                ).toEpochMilli()
         if (taskId != 0L) {
             lifecycleScope.launch {
                 taskWithItems = viewModel.getTaskWithItems(taskId)
                 renderTask(taskWithItems)
             }
         } else {
-            taskWithItems = TaskWithItems(Task(header = "", date = date!!), emptyList())
+            taskWithItems = TaskWithItems(
+                Task(
+                    header = "",
+                    date = dateUTC
+                ), emptyList()
+            )
             renderTask(taskWithItems)
         }
-        val currentDate = Instant.ofEpochMilli(date!!).atZone(ZoneId.systemDefault())
+        val currentDate = Instant.ofEpochMilli(date).atOffset(ZoneOffset.UTC)
             .toLocalDate().format(DateTimeFormatter.ofPattern("MMM d"))
         dateHeader.text = currentDate
     }

@@ -5,7 +5,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.totolist.day_fragment.DayFragment
-import com.example.totolist.list_cardview.TaskListFragment
+import com.example.totolist.details.TaskDetailsFragment
 import com.example.totolist.month_fragment.MonthFragment
 
 class ViewPagerFragmentAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle) :
@@ -16,7 +16,7 @@ class ViewPagerFragmentAdapter(fragmentManager: FragmentManager, lifecycle: Life
         return when (position) {
             0 -> MonthFragment()
             1 -> DayFragment()
-            else -> TaskListFragment()
+            else -> TaskDetailsFragment()
         }
     }
 }

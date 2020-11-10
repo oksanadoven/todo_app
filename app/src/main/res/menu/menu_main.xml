@@ -7,6 +7,7 @@
         android:orderInCategory="100"
         android:title="@string/action_icon_search"
         android:icon="@drawable/ic_action_search"
+        android:visible="false"
         android:iconTint="@color/colorTextPrimary"
         app:showAsAction="ifRoom"
         />

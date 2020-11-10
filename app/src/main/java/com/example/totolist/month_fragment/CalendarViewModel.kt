@@ -3,16 +3,15 @@ package com.example.totolist.month_fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.totolist.database.TasksDatabaseDao
-import org.threeten.bp.LocalDate
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.ZoneId
 import org.threeten.bp.ZonedDateTime
 
 class CalendarViewModel(dataSource: TasksDatabaseDao) : ViewModel() {
 
     private val database = dataSource
     val dateLiveData = MutableLiveData<Long>().apply {
-        value = LocalDate.now().atStartOfDay().toInstant(
-                ZonedDateTime.now().offset
-            ).toEpochMilli()
+        value = ZonedDateTime.of(LocalDateTime.now().toLocalDate().atStartOfDay(), ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
 
     fun setDate(date: Long) {

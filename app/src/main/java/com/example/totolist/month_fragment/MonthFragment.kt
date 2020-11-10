@@ -7,14 +7,10 @@ import android.widget.CalendarView
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import com.example.totolist.R
 import com.example.totolist.database.TasksDatabase
 import com.example.totolist.task_list_for_date_fragment.TaskListForDateFragment
-import com.example.totolist.utils.TaskListMode
 import org.threeten.bp.Instant
 import org.threeten.bp.LocalDate
 import org.threeten.bp.ZoneId
@@ -28,24 +24,15 @@ class MonthFragment : Fragment() {
         fun onActionAddSelected(id: Long, date: Long)
     }
 
+    interface SearchScreenListener {
+        fun searchActionSelected()
+    }
+
     private lateinit var viewModel: CalendarViewModel
     private lateinit var calendar: CalendarView
     private lateinit var currentDate: TextView
     var listener: Listener? = null
-
-    //private var taskListForDateFragment = TaskListForDateFragment()
-    private var isSearchModeEnabled: MutableLiveData<Boolean> =
-        MutableLiveData<Boolean>().apply { value = false }
-    val mode: LiveData<TaskListMode> = MediatorLiveData<TaskListMode>().apply {
-        value = TaskListMode.Normal
-        addSource(isSearchModeEnabled) {
-            value = if (isSearchModeEnabled.value!!) {
-                TaskListMode.Search
-            } else {
-                TaskListMode.Normal
-            }
-        }
-    }
+    var searchListener: SearchScreenListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,16 +57,16 @@ class MonthFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val rootview = inflater.inflate(R.layout.fragment_calendar_view, container, false)
+        val rootView = inflater.inflate(R.layout.fragment_calendar_view, container, false)
         viewModel.dateLiveData.observe(this, { newDate ->
-            openFragmentForDate(newDate)
-            //val newDateWithOffset = ZonedDateTime.ofInstant(Instant.ofEpochMilli(newDate), ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val newDateUTC = Instant.ofEpochMilli(newDate).atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay()
+                .atOffset(UTC).toInstant().toEpochMilli()
+            openFragmentForDate(newDateUTC)
             calendar.date = newDate
-            currentDate.text = Instant.ofEpochMilli(newDate).atZone(ZoneId.of(UTC.toString()))
+            currentDate.text = Instant.ofEpochMilli(newDate).atZone(ZoneId.systemDefault())
                 .toLocalDate().format(DateTimeFormatter.ofPattern("EEEE, MMM d"))
-                .format(DateTimeFormatter.ofPattern("EEEE, MMM d"))
         })
-        return rootview
+        return rootView
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -118,18 +105,14 @@ class MonthFragment : Fragment() {
         }
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        val showDiscardIcon = mode.value is TaskListMode.Search
-        menu.findItem(R.id.action_discard_selection).isVisible = showDiscardIcon
-        menu.findItem(R.id.icon_action_search).isVisible = !showDiscardIcon
-        menu.findItem(R.id.icon_action_add).isVisible = mode.value is TaskListMode.Normal
-        super.onPrepareOptionsMenu(menu)
-    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.icon_action_add -> {
                 listener?.onActionAddSelected(0L, viewModel.dateLiveData.value!!)
+                true
+            }
+            R.id.icon_action_search -> {
+                searchListener?.searchActionSelected()
                 true
             }
             else -> false
@@ -137,10 +120,12 @@ class MonthFragment : Fragment() {
     }
 
     private fun openFragmentForDate(date: Long) {
+        //Log.d("AAA", "open fragment for date ${Instant.ofEpochMilli(date).atZone(ZoneId.of("UTC")).toLocalDate()}")
         childFragmentManager.beginTransaction()
             .replace(R.id.calendar_fragment_container, TaskListForDateFragment().apply {
                 arguments = Bundle().apply {
-                    putLong(TaskListForDateFragment.ARG_TASK_DATE, date)
+                    putLong(
+                        TaskListForDateFragment.ARG_TASK_DATE, date)
                 }
             })
             .commit()
@@ -151,7 +136,7 @@ class MonthFragment : Fragment() {
         if (childFragment is TaskListForDateFragment) {
             childFragment.taskListListener = object : TaskListForDateFragment.TaskListListener {
                 override fun onAddListRequested(id: Long, date: Long) {
-                    listener?.onActionAddSelected(id, date)
+                    listener?.onActionAddSelected(id, viewModel.dateLiveData.value!!)
                 }
             }
             childFragment.imageListener = object : TaskListForDateFragment.ImageResizeListener {

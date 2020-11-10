@@ -1,6 +1,7 @@
 package com.example.totolist.day_fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
@@ -19,8 +20,10 @@ import kotlinx.coroutines.launch
 import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.ZoneOffset
+import org.threeten.bp.ZonedDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.format.TextStyle
+import org.threeten.bp.temporal.ChronoUnit
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -75,9 +78,8 @@ class DayFragment : Fragment() {
                 if (layoutManager.findLastCompletelyVisibleItemPosition() == dayCardAdapter.itemCount - 1) {
                     val lastDayInList =
                         dayCardAdapter.currentList[dayCardAdapter.currentList.lastIndex]
-                    val nextDay = Instant.ofEpochMilli(lastDayInList.databaseDate).plusMillis(
-                        ONE_DAY_IN_MILLIS.toLong()
-                    ).toEpochMilli()
+                    val nextDay = Instant.ofEpochMilli(lastDayInList.timeInMillis).atOffset(
+                        ZoneOffset.UTC).plus(1L, ChronoUnit.DAYS).toInstant().toEpochMilli()
                     val newList =
                         dayCardAdapter.currentList + newItemsList(nextDay)
                     dayCardAdapter.submitList(newList)
@@ -86,11 +88,11 @@ class DayFragment : Fragment() {
         })
         dayCardAdapter.listener = object : DayCardAdapter.OnItemClickListener {
             override fun onDaySelected(day: CalendarDay) {
-                val dateText = Instant.ofEpochMilli(day.databaseDate).atZone(ZoneId.of(ZoneOffset.UTC.toString()))
+                val dateText = Instant.ofEpochMilli(day.timeInMillis).atZone(ZoneId.systemDefault())
                     .toLocalDate().format(DateTimeFormatter.ofPattern("EEEE, MMM d"))
                 currentDate.text = dateText
-                calculateTotalTasks(day.databaseDate)
-                viewModel.setDate(day.databaseDate)
+                calculateTotalTasks(day.timeInMillis)
+                viewModel.setDate(day.timeInMillis)
             }
         }
         return rootView
@@ -101,15 +103,18 @@ class DayFragment : Fragment() {
         currentDate = view.findViewById(R.id.current_day)
         tasksTotal = view.findViewById(R.id.tasks_total)
         val currentDay = Instant.ofEpochMilli(viewModel.dateLiveData.value!!)
-        currentDate.text = currentDay.atZone(ZoneId.of(ZoneOffset.UTC.toString())).toLocalDate()
+        Log.d("AAA", "onViewCreated invoked in DayFragment()")
+        currentDate.text = currentDay.atZone(ZoneId.systemDefault()).toLocalDate()
             .format(DateTimeFormatter.ofPattern("EEEE, MMM d"))
-        calculateTotalTasks(currentDay.toEpochMilli())
+        calculateTotalTasks(currentDay.atZone(ZoneId.of("UTC")).toInstant().toEpochMilli())
         viewModel.dateLiveData.observe(this, { newDate ->
             currentDate.text = Instant.ofEpochMilli(newDate).atZone(ZoneId.systemDefault())
                 .toLocalDate().format(DateTimeFormatter.ofPattern("EEEE, MMM d"))
-            calculateTotalTasks(newDate)
-            dayCardAdapter.submitList(newItemsList(newDate))
-            openFragmentForDate(newDate)
+            val newDateUTC = Instant.ofEpochMilli(newDate).atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay()
+                .atOffset(ZoneOffset.UTC).toInstant().toEpochMilli()
+            calculateTotalTasks(newDateUTC)
+            dayCardAdapter.submitList(dayCardAdapter.currentList + newItemsList(newDate))
+            openFragmentForDate(newDateUTC)
         })
     }
 
@@ -118,20 +123,20 @@ class DayFragment : Fragment() {
         if (childFragment is TaskListForDateFragment) {
             childFragment.taskListListener = object : TaskListForDateFragment.TaskListListener {
                 override fun onAddListRequested(id: Long, date: Long) {
-                    onClickListener?.onActionAddClicked(id, date)
+                    onClickListener?.onActionAddClicked(id, viewModel.dateLiveData.value!!)
                 }
             }
         }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.menu_daily_calendar, menu)
+        inflater.inflate(R.menu.menu_calendar_fagment, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.daily_icon_action_add -> {
+            R.id.icon_action_add -> {
                 onClickListener?.onActionAddClicked(0L, viewModel.dateLiveData.value!!)
                 true
             }
@@ -141,7 +146,8 @@ class DayFragment : Fragment() {
 
     private fun newItemsList(startDate: Long): ArrayList<CalendarDay> {
         val daysList = ArrayList<CalendarDay>()
-        var day = createDay(startDate, true)
+        val startDateOffset = Instant.ofEpochMilli(startDate).minus(15L, ChronoUnit.DAYS)
+        var day = createDay(startDate, isSelected = viewModel.dateLiveData.value!! == startDate)
         daysList.add(day)
         repeat(10) {
             val nextDay = createNext(day)
@@ -152,22 +158,21 @@ class DayFragment : Fragment() {
     }
 
     private fun createNext(day: CalendarDay): CalendarDay {
-        val nextDay = Instant.ofEpochMilli(day.databaseDate).plusMillis(
-            ONE_DAY_IN_MILLIS.toLong()
-        ).toEpochMilli()
+        val nextDay = Instant.ofEpochMilli(day.timeInMillis).plus(1, ChronoUnit.DAYS).toEpochMilli()
         return createDay(nextDay, false)
     }
 
-    private fun createDay(databaseFormatDate: Long, isSelected: Boolean): CalendarDay {
-        val parsedDate =
-            Instant.ofEpochMilli(databaseFormatDate).atZone(ZoneId.systemDefault()).toLocalDate()
-                .atStartOfDay()
-        val dateNumber = parsedDate.dayOfMonth.toString()
-        val dayOfWeek = parsedDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ROOT)
+    private fun createDay(timeInMillis: Long, isSelected: Boolean): CalendarDay {
+        val zonedDate = ZonedDateTime.ofInstant(
+            Instant.ofEpochMilli(timeInMillis),
+            ZoneId.systemDefault()
+        )
+        val dateNumber = zonedDate.dayOfMonth.toString()
+        val dayOfWeek = zonedDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ROOT)
         return CalendarDay(
             dateNumber,
             dayOfWeek,
-            databaseFormatDate,
+            timeInMillis,
             isSelected
         )
     }
@@ -195,7 +200,10 @@ class DayFragment : Fragment() {
         childFragmentManager.beginTransaction()
             .replace(R.id.daily_calendar_fragment_container, TaskListForDateFragment().apply {
                 arguments = Bundle().apply {
-                    putLong(TaskListForDateFragment.ARG_TASK_DATE, date)
+                    putLong(
+                        TaskListForDateFragment.ARG_TASK_DATE,
+                        date
+                    )
                 }
             })
             .commit()

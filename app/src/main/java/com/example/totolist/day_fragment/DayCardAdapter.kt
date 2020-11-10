@@ -32,7 +32,7 @@ class DayCardAdapter : ListAdapter<CalendarDay, DayCardAdapter.DayCardViewHolder
             oldItem: CalendarDay,
             newItem: CalendarDay
         ): Boolean {
-            return oldItem.databaseDate == newItem.databaseDate
+            return oldItem.timeInMillis == newItem.timeInMillis
         }
 
         override fun areContentsTheSame(
