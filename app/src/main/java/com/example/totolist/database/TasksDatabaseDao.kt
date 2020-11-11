@@ -41,6 +41,12 @@ interface TasksDatabaseDao {
 */
 
     @Transaction
+    suspend fun deleteTaskWithItems(task: Task){
+        batchDeleteItems(listOf(task.id))
+        deleteTask(task)
+    }
+
+    @Transaction
     @Query("DELETE FROM tasks WHERE id IN (:idList)")
     suspend fun batchDeleteTasks(idList: List<Long>)
 

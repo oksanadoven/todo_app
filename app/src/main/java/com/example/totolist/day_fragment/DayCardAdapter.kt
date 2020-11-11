@@ -61,9 +61,9 @@ class DayCardAdapter : ListAdapter<CalendarDay, DayCardAdapter.DayCardViewHolder
                     notifyItemChanged(index)
                 }
                 val item = getItem(position)
+                listener?.onDaySelected(item)
                 item.isSelected = true
                 notifyItemChanged(position)
-                listener?.onDaySelected(item)
             }
         }
         return holder

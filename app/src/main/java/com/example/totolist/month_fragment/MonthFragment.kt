@@ -59,8 +59,10 @@ class MonthFragment : Fragment() {
     ): View? {
         val rootView = inflater.inflate(R.layout.fragment_calendar_view, container, false)
         viewModel.dateLiveData.observe(this, { newDate ->
-            val newDateUTC = Instant.ofEpochMilli(newDate).atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay()
-                .atOffset(UTC).toInstant().toEpochMilli()
+            val newDateUTC =
+                Instant.ofEpochMilli(newDate).atZone(ZoneId.systemDefault()).toLocalDate()
+                    .atStartOfDay()
+                    .atOffset(UTC).toInstant().toEpochMilli()
             openFragmentForDate(newDateUTC)
             calendar.date = newDate
             currentDate.text = Instant.ofEpochMilli(newDate).atZone(ZoneId.systemDefault())
@@ -96,11 +98,15 @@ class MonthFragment : Fragment() {
             val selectedDate = LocalDate.parse(formatter).atStartOfDay()
             val formattedDate = LocalDate.parse(formatter)
                 .format(DateTimeFormatter.ofPattern("EEEE, MMM d"))
-            viewModel.setDate(
-                selectedDate.toInstant(
-                    ZonedDateTime.of(selectedDate, ZoneId.systemDefault()).offset
-                ).toEpochMilli()
-            )
+            val timeInMillis = selectedDate.toInstant(
+                ZonedDateTime.of(
+                    selectedDate,
+                    ZoneId.systemDefault()
+                ).offset
+            ).toEpochMilli()
+            if (viewModel.dateLiveData.value != timeInMillis) {
+                viewModel.setDate(timeInMillis)
+            }
             currentDate.text = formattedDate
         }
     }
@@ -120,12 +126,12 @@ class MonthFragment : Fragment() {
     }
 
     private fun openFragmentForDate(date: Long) {
-        //Log.d("AAA", "open fragment for date ${Instant.ofEpochMilli(date).atZone(ZoneId.of("UTC")).toLocalDate()}")
         childFragmentManager.beginTransaction()
             .replace(R.id.calendar_fragment_container, TaskListForDateFragment().apply {
                 arguments = Bundle().apply {
                     putLong(
-                        TaskListForDateFragment.ARG_TASK_DATE, date)
+                        TaskListForDateFragment.ARG_TASK_DATE, date
+                    )
                 }
             })
             .commit()
@@ -135,7 +141,7 @@ class MonthFragment : Fragment() {
         super.onAttachFragment(childFragment)
         if (childFragment is TaskListForDateFragment) {
             childFragment.taskListListener = object : TaskListForDateFragment.TaskListListener {
-                override fun onAddListRequested(id: Long, date: Long) {
+                override fun openDetailsScreenRequested(id: Long, date: Long) {
                     listener?.onActionAddSelected(id, viewModel.dateLiveData.value!!)
                 }
             }

@@ -1,7 +1,6 @@
 package com.example.totolist.day_fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
@@ -16,7 +15,9 @@ import com.example.totolist.database.TasksDatabase
 import com.example.totolist.month_fragment.CalendarViewModel
 import com.example.totolist.month_fragment.CalendarViewModelFactory
 import com.example.totolist.task_list_for_date_fragment.TaskListForDateFragment
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.ZoneOffset
@@ -26,7 +27,6 @@ import org.threeten.bp.format.TextStyle
 import org.threeten.bp.temporal.ChronoUnit
 import java.util.*
 import kotlin.collections.ArrayList
-
 
 class DayFragment : Fragment() {
 
@@ -76,12 +76,14 @@ class DayFragment : Fragment() {
                 super.onScrolled(recyclerView, dx, dy)
                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
                 if (layoutManager.findLastCompletelyVisibleItemPosition() == dayCardAdapter.itemCount - 1) {
-                    val lastDayInList =
-                        dayCardAdapter.currentList[dayCardAdapter.currentList.lastIndex]
-                    val nextDay = Instant.ofEpochMilli(lastDayInList.timeInMillis).atOffset(
-                        ZoneOffset.UTC).plus(1L, ChronoUnit.DAYS).toInstant().toEpochMilli()
-                    val newList =
-                        dayCardAdapter.currentList + newItemsList(nextDay)
+                    val lastDayInList = dayCardAdapter.currentList.last()
+                    val nextDay = Instant
+                        .ofEpochMilli(lastDayInList.timeInMillis)
+                        .atOffset(ZoneOffset.UTC)
+                        .plus(1L, ChronoUnit.DAYS)
+                        .toInstant()
+                        .toEpochMilli()
+                    val newList = dayCardAdapter.currentList + newItemsList(nextDay)
                     dayCardAdapter.submitList(newList)
                 }
             }
@@ -92,7 +94,9 @@ class DayFragment : Fragment() {
                     .toLocalDate().format(DateTimeFormatter.ofPattern("EEEE, MMM d"))
                 currentDate.text = dateText
                 calculateTotalTasks(day.timeInMillis)
-                viewModel.setDate(day.timeInMillis)
+                if (viewModel.dateLiveData.value != day.timeInMillis) {
+                    viewModel.setDate(day.timeInMillis)
+                }
             }
         }
         return rootView
@@ -103,17 +107,21 @@ class DayFragment : Fragment() {
         currentDate = view.findViewById(R.id.current_day)
         tasksTotal = view.findViewById(R.id.tasks_total)
         val currentDay = Instant.ofEpochMilli(viewModel.dateLiveData.value!!)
-        Log.d("AAA", "onViewCreated invoked in DayFragment()")
         currentDate.text = currentDay.atZone(ZoneId.systemDefault()).toLocalDate()
             .format(DateTimeFormatter.ofPattern("EEEE, MMM d"))
         calculateTotalTasks(currentDay.atZone(ZoneId.of("UTC")).toInstant().toEpochMilli())
         viewModel.dateLiveData.observe(this, { newDate ->
             currentDate.text = Instant.ofEpochMilli(newDate).atZone(ZoneId.systemDefault())
                 .toLocalDate().format(DateTimeFormatter.ofPattern("EEEE, MMM d"))
-            val newDateUTC = Instant.ofEpochMilli(newDate).atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay()
-                .atOffset(ZoneOffset.UTC).toInstant().toEpochMilli()
+            val newDateUTC =
+                Instant.ofEpochMilli(newDate).atZone(ZoneId.systemDefault()).toLocalDate()
+                    .atStartOfDay()
+                    .atOffset(ZoneOffset.UTC).toInstant().toEpochMilli()
             calculateTotalTasks(newDateUTC)
-            dayCardAdapter.submitList(dayCardAdapter.currentList + newItemsList(newDate))
+            val items = newItemsListWithOffset(newDate)
+            dayCardAdapter.submitList(items) {
+                recyclerView.scrollToPosition(items.size / 2)
+            }
             openFragmentForDate(newDateUTC)
         })
     }
@@ -122,7 +130,7 @@ class DayFragment : Fragment() {
         super.onAttachFragment(childFragment)
         if (childFragment is TaskListForDateFragment) {
             childFragment.taskListListener = object : TaskListForDateFragment.TaskListListener {
-                override fun onAddListRequested(id: Long, date: Long) {
+                override fun openDetailsScreenRequested(id: Long, date: Long) {
                     onClickListener?.onActionAddClicked(id, viewModel.dateLiveData.value!!)
                 }
             }
@@ -144,22 +152,35 @@ class DayFragment : Fragment() {
         }
     }
 
-    private fun newItemsList(startDate: Long): ArrayList<CalendarDay> {
+    private fun newItemsListWithOffset(startDate: Long): ArrayList<CalendarDay> {
         val daysList = ArrayList<CalendarDay>()
-        val startDateOffset = Instant.ofEpochMilli(startDate).minus(15L, ChronoUnit.DAYS)
-        var day = createDay(startDate, isSelected = viewModel.dateLiveData.value!! == startDate)
+        val startDateOffset =
+            Instant.ofEpochMilli(startDate).minus(15L, ChronoUnit.DAYS).toEpochMilli()
+        var day = createDay(startDateOffset, false)
         daysList.add(day)
-        repeat(10) {
-            val nextDay = createNext(day)
+        repeat(30) {
+            val nextDay = createNext(day, startDate)
             daysList.add(nextDay)
             day = nextDay
         }
         return daysList
     }
 
-    private fun createNext(day: CalendarDay): CalendarDay {
+    private fun newItemsList(startDate: Long): ArrayList<CalendarDay> {
+        val daysList = ArrayList<CalendarDay>()
+        var day = createDay(startDate, false)
+        daysList.add(day)
+        repeat(30) {
+            val nextDay = createNext(day, startDate)
+            daysList.add(nextDay)
+            day = nextDay
+        }
+        return daysList
+    }
+
+    private fun createNext(day: CalendarDay, startDate: Long): CalendarDay {
         val nextDay = Instant.ofEpochMilli(day.timeInMillis).plus(1, ChronoUnit.DAYS).toEpochMilli()
-        return createDay(nextDay, false)
+        return createDay(nextDay, isSelected = nextDay == startDate)
     }
 
     private fun createDay(timeInMillis: Long, isSelected: Boolean): CalendarDay {
@@ -181,18 +202,20 @@ class DayFragment : Fragment() {
         var taskItemCount = 0
         lifecycleScope.launch {
             taskItemCount = viewModel.calculateTotalTasksForDay(date)
-        }
-        if (taskItemCount > 0) {
-            val textBeginning = context!!.getText(R.string.tasks_total_beginning)
-            val textEnding = if (taskItemCount > 1) {
-                context!!.getText(R.string.tasks_total_ending_plural)
-            } else {
-                context!!.getText(R.string.tasks_total_ending_singular)
+            withContext(Dispatchers.Main) {
+                if (taskItemCount > 0) {
+                    val textBeginning = context!!.getText(R.string.tasks_total_beginning)
+                    val textEnding = if (taskItemCount > 1) {
+                        context!!.getText(R.string.tasks_total_ending_plural)
+                    } else {
+                        context!!.getText(R.string.tasks_total_ending_singular)
+                    }
+                    tasksTotal.text =
+                        textBeginning.toString() + " " + taskItemCount + " " + textEnding
+                } else {
+                    tasksTotal.setText(R.string.no_tasks_total)
+                }
             }
-            tasksTotal.text =
-                textBeginning.toString() + " " + taskItemCount + " " + textEnding
-        } else {
-            tasksTotal.setText(R.string.no_tasks_total)
         }
     }
 

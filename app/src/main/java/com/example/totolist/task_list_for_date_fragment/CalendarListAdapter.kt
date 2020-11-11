@@ -5,11 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.totolist.R
+import com.example.totolist.database.Task
 import com.example.totolist.month_fragment.CalendarListItem
 import com.example.totolist.month_fragment.CalendarTaskCheckboxItem
 import com.example.totolist.month_fragment.CalendarTaskHeaderItem
@@ -22,6 +24,14 @@ class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolde
         fun onItemChecked(itemId: Long, isDone: Boolean)
     }
 
+    interface DeleteListListener {
+        fun onActionDeleteChecked(task: Task)
+    }
+
+    interface OpenDetailsScreenListener {
+        fun onListSelectedListener(task: Task)
+    }
+
     class CalendarHeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         companion object {
@@ -32,7 +42,8 @@ class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolde
             }
         }
 
-        private val listHeader: TextView = itemView.findViewById(R.id.calendar_task_header)
+        val listHeader: TextView = itemView.findViewById(R.id.calendar_task_header)
+        val deleteIcon: ImageView = itemView.findViewById(R.id.calendar_task_header_delete_list)
         fun bind(header: CalendarTaskHeaderItem) {
             listHeader.text = header.task.header
         }
@@ -87,6 +98,8 @@ class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolde
     }
 
     var listener: OnItemChecked? = null
+    var deleteListListener: DeleteListListener? = null
+    var openDetailsScreenListener: OpenDetailsScreenListener? = null
 
     override fun getItemViewType(position: Int): Int {
         val item = getItem(position)
@@ -94,11 +107,21 @@ class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolde
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        lateinit var holder: RecyclerView.ViewHolder
-        when (viewType) {
-            R.layout.calendar_task_header_item -> holder = CalendarHeaderViewHolder.create(parent)
+        return when (viewType) {
+            R.layout.calendar_task_header_item -> {
+                val holder = CalendarHeaderViewHolder.create(parent)
+                holder.deleteIcon.setOnClickListener {
+                    val currentItem = getItem(holder.adapterPosition) as CalendarTaskHeaderItem
+                    deleteListListener?.onActionDeleteChecked(currentItem.task)
+                }
+                holder.listHeader.setOnClickListener {
+                    val currentItem = getItem(holder.adapterPosition) as CalendarTaskHeaderItem
+                    openDetailsScreenListener?.onListSelectedListener(currentItem.task)
+                }
+                holder
+            }
             R.layout.calendar_task_checkbox_item -> {
-                holder = CalendarCheckboxViewHolder.create(parent)
+                val holder = CalendarCheckboxViewHolder.create(parent)
                 holder.checkbox.setOnCheckedChangeListener { buttonView, isChecked ->
                     buttonView.isChecked = isChecked
                     val currentItem = getItem(holder.adapterPosition) as CalendarTaskCheckboxItem
@@ -112,10 +135,11 @@ class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolde
                     }
                     submitList(currentList.sorted())
                     listener?.onItemChecked(currentItem.item.id, currentItem.item.isDone)
-                }}
+                }
+                holder
+            }
             else -> throw IllegalArgumentException("Unknown view type")
         }
-        return holder
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {

@@ -1,7 +1,8 @@
 package com.example.totolist.task_list_for_date_fragment
 
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.totolist.R
 import com.example.totolist.TaskListItem
+import com.example.totolist.database.Task
 import com.example.totolist.database.TasksDatabase
 import com.example.totolist.month_fragment.CalendarListItem
 import com.example.totolist.month_fragment.CalendarTaskCheckboxItem
@@ -31,7 +33,7 @@ import org.threeten.bp.ZoneId
 class TaskListForDateFragment : Fragment() {
 
     interface TaskListListener {
-        fun onAddListRequested(id: Long, date: Long)
+        fun openDetailsScreenRequested(id: Long, date: Long)
     }
 
     interface ImageResizeListener {
@@ -77,6 +79,35 @@ class TaskListForDateFragment : Fragment() {
                 }
             }
         }
+        calendarListAdapter.deleteListListener = object : CalendarListAdapter.DeleteListListener {
+            override fun onActionDeleteChecked(task: Task) {
+                showDeleteTaskConfirmationDialog(task)
+            }
+        }
+        calendarListAdapter.openDetailsScreenListener =
+            object : CalendarListAdapter.OpenDetailsScreenListener {
+                override fun onListSelectedListener(task: Task) {
+                    taskListListener?.openDetailsScreenRequested(task.id, task.date)
+                }
+            }
+    }
+
+    private fun showDeleteTaskConfirmationDialog(task: Task) {
+        AlertDialog.Builder(context)
+            .setMessage("Do you want to delete this list?")
+            .setPositiveButton("Yes", DialogInterface.OnClickListener { dialog, which ->
+                lifecycleScope.launch {
+                    taskListForDateViewModel.deleteTask(task)
+                    withContext(Dispatchers.Main) {
+                        syncCalendarItemsWithDate()
+                    }
+                }
+                return@OnClickListener
+            })
+            .setNegativeButton("No", DialogInterface.OnClickListener { dialog, which ->
+                return@OnClickListener
+            })
+            .show()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -88,15 +119,15 @@ class TaskListForDateFragment : Fragment() {
         addButton = view.findViewById(R.id.empty_add_button)
         addButton.setOnClickListener {
             val date = arguments?.getLong(ARG_TASK_DATE)
-            taskListListener?.onAddListRequested(0L, date!!)
+            taskListListener?.openDetailsScreenRequested(0L, date!!)
         }
     }
 
     private fun syncCalendarItemsWithDate() {
         val date = arguments?.getLong(ARG_TASK_DATE)
         if (date != null) {
-            val dateUTC = Instant.ofEpochMilli(date).atZone(ZoneId.of("UTC")).toInstant().toEpochMilli()
-            Log.d("AAA", "get items by date ${Instant.ofEpochMilli(dateUTC).atZone(ZoneId.of("UTC")).toLocalDateTime()}")
+            val dateUTC =
+                Instant.ofEpochMilli(date).atZone(ZoneId.of("UTC")).toInstant().toEpochMilli()
             lifecycleScope.launch {
                 val items = taskListForDateViewModel.getCalendarItemsByDate(dateUTC)
                 withContext(Dispatchers.Main) {

@@ -1,6 +1,7 @@
 package com.example.totolist.task_list_for_date_fragment
 
 import androidx.lifecycle.ViewModel
+import com.example.totolist.database.Task
 import com.example.totolist.database.TasksDatabaseDao
 import com.example.totolist.month_fragment.CalendarListItem
 import com.example.totolist.month_fragment.CalendarTaskCheckboxItem
@@ -24,5 +25,9 @@ class TaskListForDateViewModel(dataSource: TasksDatabaseDao) : ViewModel() {
 
     suspend fun updateTaskItems(itemId: Long, isDone: Boolean) {
         database.updateTaskItemById(itemId, isDone)
+    }
+
+    suspend fun deleteTask(task: Task) {
+        database.deleteTaskWithItems(task)
     }
 }
