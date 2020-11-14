@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var searchField: EditText
     private var isSearchModeEnabled: MutableLiveData<Boolean> =
         MutableLiveData<Boolean>().apply { value = false }
-    val mode: LiveData<TaskListMode> = MediatorLiveData<TaskListMode>().apply {
+    private val mode: LiveData<TaskListMode> = MediatorLiveData<TaskListMode>().apply {
         value = TaskListMode.Normal
         addSource(isSearchModeEnabled) {
             value = if (isSearchModeEnabled.value!!) {
@@ -80,8 +80,9 @@ class MainActivity : AppCompatActivity() {
         if (findSearchFragment() != null) {
             return
         }
+        val searchFragment = SearchFragment()
         supportFragmentManager.beginTransaction()
-            .add(R.id.fragment_container, SearchFragment(), SEARCH_FRAGMENT_TAG)
+            .add(R.id.fragment_container, searchFragment, SEARCH_FRAGMENT_TAG)
             .commitNow()
     }
 
@@ -112,6 +113,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
         if (fragment is SearchFragment) {
+            fragment.openDetailsListener = object : SearchFragment.OpenDetailsListener {
+                override fun openDetailsScreenRequested(id: Long, date: Long) {
+                    openTaskScreen(id, date)
+                }
+            }
             fragment.listener = object : SearchFragment.SearchDiscardListener {
                 override fun searchDiscardRequested() {
                     actionBarListener?.closeSearchModeRequested(fragment)
@@ -205,6 +211,12 @@ class MainActivity : AppCompatActivity() {
         searchField.isVisible = isSearchModeOn
         menu.findItem(R.id.icon_action_add).isVisible =
             (!isSearchModeOn && this.supportFragmentManager.findFragmentByTag(DETAILS_FRAGMENT_TAG) == null)
+        if (isSearchModeOn && this.supportFragmentManager.findFragmentByTag(DETAILS_FRAGMENT_TAG) != null) {
+            menu.findItem(R.id.icon_action_add).isVisible = false
+            searchField.isVisible = false
+            menu.findItem(R.id.action_discard_selection).isVisible = false
+            supportActionBar?.setDisplayShowTitleEnabled(true)
+        }
         supportActionBar?.setDisplayShowTitleEnabled(!isSearchModeOn)
         return super.onPrepareOptionsMenu(menu)
     }

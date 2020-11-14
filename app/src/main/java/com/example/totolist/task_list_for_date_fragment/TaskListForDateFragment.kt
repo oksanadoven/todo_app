@@ -10,11 +10,13 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.doOnAttach
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.totolist.R
@@ -71,7 +73,11 @@ class TaskListForDateFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         recyclerView.adapter = calendarListAdapter
         recyclerView.layoutManager = LinearLayoutManager(activity, RecyclerView.VERTICAL, false)
-        syncCalendarItemsWithDate()
+        lifecycleScope.launch {
+            withContext(Dispatchers.Main) {
+                syncCalendarItemsWithDate()
+            }
+        }
         calendarListAdapter.listener = object : CalendarListAdapter.OnItemChecked {
             override fun onItemChecked(itemId: Long, isDone: Boolean) {
                 lifecycleScope.launch {

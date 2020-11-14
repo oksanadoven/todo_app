@@ -42,8 +42,8 @@ class TaskDetailsFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
         //instance of database
+        setHasOptionsMenu(true)
         val application = requireNotNull(this.activity).application
         val dataSource = TasksDatabase.getInstance(
             application
@@ -57,17 +57,16 @@ class TaskDetailsFragment : Fragment() {
         //instance of ViewModel
         viewModel = ViewModelProvider(this, viewModelFactory).get(TodoDetailsViewModel::class.java)
     }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.menu_calendar_fagment, menu)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_task_details, container, false)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_calendar_fagment, menu)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -146,15 +145,6 @@ class TaskDetailsFragment : Fragment() {
             withContext(Dispatchers.Main) {
                 saveItemListener?.onItemSaved()
             }
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.icon_action_search -> {
-                true
-            }
-            else -> false
         }
     }
 

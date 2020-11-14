@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.totolist.R
+import com.example.totolist.database.Task
 import com.example.totolist.database.TasksDatabase
 
 class SearchFragment : Fragment() {
@@ -15,10 +16,16 @@ class SearchFragment : Fragment() {
         fun searchDiscardRequested()
     }
 
+    interface OpenDetailsListener {
+        fun openDetailsScreenRequested(id: Long, date: Long)
+    }
+
     private lateinit var viewModel: SearchViewModel
     private lateinit var recyclerView: RecyclerView
-    private val searchResultsAdapter = SearchResultsAdapter()
+    private val searchResultsAdapter = SearchResultsParentAdapter()
     var listener: SearchDiscardListener? = null
+    var openDetailsListener: OpenDetailsListener? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +50,12 @@ class SearchFragment : Fragment() {
         viewModel.taskItemsLiveData.observe(this, { taskList ->
             searchResultsAdapter.submitList(taskList)
         })
+        searchResultsAdapter.openDetailsListener =
+            object : SearchResultsParentAdapter.OpenDetailsScreenListener {
+                override fun onOpenSelectedListRequested(item: Task) {
+                    openDetailsListener?.openDetailsScreenRequested(item.id, item.date)
+                }
+            }
         return rootView
     }
 

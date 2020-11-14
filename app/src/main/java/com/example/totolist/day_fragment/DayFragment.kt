@@ -93,8 +93,8 @@ class DayFragment : Fragment() {
                 val dateText = Instant.ofEpochMilli(day.timeInMillis).atZone(ZoneId.systemDefault())
                     .toLocalDate().format(DateTimeFormatter.ofPattern("EEEE, MMM d"))
                 currentDate.text = dateText
-                calculateTotalTasks(day.timeInMillis)
                 if (viewModel.dateLiveData.value != day.timeInMillis) {
+                    calculateTotalTasks(day.timeInMillis)
                     viewModel.setDate(day.timeInMillis)
                 }
             }

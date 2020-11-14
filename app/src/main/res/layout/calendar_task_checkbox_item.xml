@@ -14,9 +14,11 @@
         android:checked="false"
         android:clickable="true"
         android:focusable="true"
+        android:paddingTop="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Task 1" />
+        tools:text="@tools:sample/lorem/random"
+        android:gravity="top|start" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

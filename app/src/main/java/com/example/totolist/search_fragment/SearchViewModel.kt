@@ -16,6 +16,7 @@ class SearchViewModel(
             tasks.map { it.copy(items = it.items.sorted()) }
                 .map { taskItem ->
                     SearchListItem(
+                        taskItem.task,
                         children = ArrayList<CalendarListItem>()
                             .plus(CalendarTaskHeaderItem(task = taskItem.task))
                             .plus(taskItem.items.map { CalendarTaskCheckboxItem(it) })
