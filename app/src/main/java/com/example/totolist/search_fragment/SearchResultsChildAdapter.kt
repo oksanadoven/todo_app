@@ -15,10 +15,10 @@ import com.example.totolist.month_fragment.CalendarListItem
 import com.example.totolist.month_fragment.CalendarTaskCheckboxItem
 import com.example.totolist.month_fragment.CalendarTaskHeaderItem
 
-class SearchResultsChildAdapter: ListAdapter<CalendarListItem, RecyclerView.ViewHolder>(
+class SearchResultsChildAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolder>(
     SearchDiffCallback()
 ) {
-    class SearchDiffCallback: DiffUtil.ItemCallback<CalendarListItem>() {
+    class SearchDiffCallback : DiffUtil.ItemCallback<CalendarListItem>() {
         override fun areItemsTheSame(
             oldItem: CalendarListItem,
             newItem: CalendarListItem
@@ -58,7 +58,9 @@ class SearchResultsChildAdapter: ListAdapter<CalendarListItem, RecyclerView.View
         }
 
         private val listHeader: TextView = itemView.findViewById(R.id.calendar_task_header)
-        private val deleteIcon: ImageView = itemView.findViewById(R.id.calendar_task_header_delete_list)
+        private val deleteIcon: ImageView =
+            itemView.findViewById(R.id.calendar_task_header_delete_list)
+
         fun bind(header: CalendarTaskHeaderItem) {
             listHeader.text = header.task.header
             deleteIcon.isVisible = false
@@ -76,9 +78,10 @@ class SearchResultsChildAdapter: ListAdapter<CalendarListItem, RecyclerView.View
             }
         }
 
-        private val checkbox: CheckBox = itemView.findViewById<CheckBox>(R.id.calendar_task_checkbox).apply {
-            isClickable = false
-        }
+        private val checkbox: CheckBox =
+            itemView.findViewById<CheckBox>(R.id.calendar_task_checkbox).apply {
+                isClickable = false
+            }
 
         fun bind(taskItem: CalendarTaskCheckboxItem) {
             checkbox.isChecked = taskItem.item.isDone

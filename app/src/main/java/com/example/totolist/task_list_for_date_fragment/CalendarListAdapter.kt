@@ -20,6 +20,11 @@ class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolde
     TasksDiffCallback()
 ) {
 
+    companion object {
+        private const val TASK_HEADER_ID = "TASK_HEADER_ID"
+        private const val TASK_CHECKBOX_ID = "TASK_CHECKBOX_ID"
+    }
+
     interface OnItemChecked {
         fun onItemChecked(itemId: Long, isDone: Boolean)
     }

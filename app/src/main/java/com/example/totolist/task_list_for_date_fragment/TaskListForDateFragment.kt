@@ -1,5 +1,6 @@
 package com.example.totolist.task_list_for_date_fragment
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.os.Bundle
@@ -10,13 +11,11 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.doOnAttach
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.totolist.R
@@ -26,6 +25,7 @@ import com.example.totolist.database.TasksDatabase
 import com.example.totolist.month_fragment.CalendarListItem
 import com.example.totolist.month_fragment.CalendarTaskCheckboxItem
 import com.example.totolist.month_fragment.CalendarTaskHeaderItem
+import com.example.totolist.utils.TaskListDivider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -78,6 +78,7 @@ class TaskListForDateFragment : Fragment() {
                 syncCalendarItemsWithDate()
             }
         }
+        recyclerView.addItemDecoration(TaskListDivider(activity as Activity))
         calendarListAdapter.listener = object : CalendarListAdapter.OnItemChecked {
             override fun onItemChecked(itemId: Long, isDone: Boolean) {
                 lifecycleScope.launch {
