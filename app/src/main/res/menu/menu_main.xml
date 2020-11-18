@@ -3,30 +3,35 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/icon_action_search"
-        android:orderInCategory="100"
-        android:title="@string/action_icon_search"
+        android:id="@+id/action_search"
         android:icon="@drawable/ic_action_search"
+        android:orderInCategory="100"
         android:visible="false"
-        android:iconTint="@color/colorTextPrimary"
-        app:showAsAction="ifRoom"
-        />
+        android:title="@string/action_icon_search"
+        app:actionViewClass="android.widget.SearchView"
+        app:showAsAction="collapseActionView|ifRoom" />
     <item
-        android:id="@+id/action_delete_list"
-        android:icon="@drawable/ic_action_delete"
-        android:iconTint="@color/colorTextPrimary"
-        android:orderInCategory="500"
-        android:title="@string/delete_list"
-        app:showAsAction="ifRoom"
-        android:visible="false"/>
-
+        android:id="@+id/action_add_new_task"
+        android:icon="@drawable/ic_add"
+        android:visible="false"
+        android:orderInCategory="200"
+        android:title="@string/add_new_list"
+        app:showAsAction="collapseActionView|ifRoom" />
     <item
-        android:id="@+id/action_discard_selection"
+        android:id="@+id/action_clear_search"
         android:icon="@drawable/ic_action_close"
         android:iconTint="@color/colorTextPrimary"
-        android:orderInCategory="500"
+        android:orderInCategory="300"
         android:title="@string/delete_list"
-        app:showAsAction="ifRoom"
-        android:visible="false"/>
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_delete"
+        android:icon="@drawable/ic_action_delete"
+        android:iconTint="@color/colorTextPrimary"
+        android:orderInCategory="400"
+        android:title="@string/delete_list"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
 
 </menu>

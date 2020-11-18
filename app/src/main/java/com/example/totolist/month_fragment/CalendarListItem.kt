@@ -5,5 +5,4 @@ import androidx.annotation.LayoutRes
 interface CalendarListItem: Comparable<CalendarListItem> {
     @LayoutRes
     fun getLayoutResId(): Int
-
 }

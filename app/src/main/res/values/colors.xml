@@ -12,5 +12,5 @@
     <color name="colorTextPrimaryDark">#787878</color>
     <color name="colorTextSecondary">#757575</color>
     <color name="colorCheckedItem">#faebee</color>
-    <color name="semitransparent_white">#D9F4F4F4</color>
+    <color name="semitransparent_white">#F2F4F4F4</color>
 </resources>

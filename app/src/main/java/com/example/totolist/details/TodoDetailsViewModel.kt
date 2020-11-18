@@ -25,4 +25,8 @@ class TodoDetailsViewModel(
     suspend fun deleteAndInsert(task: Task, taskItems: List<TaskItem>) {
         database.deleteAndInsert(task, taskItems, listOf(task.id))
     }
+
+    suspend fun deleteTaskWithItems(task: Task) {
+        database.deleteTaskWithItems(task)
+    }
 }

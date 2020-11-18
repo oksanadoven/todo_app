@@ -1,6 +1,8 @@
 package com.example.totolist.details
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.*
 import android.widget.EditText
@@ -31,6 +33,10 @@ class TaskDetailsFragment : Fragment() {
         fun onItemSaved()
     }
 
+    interface TaskDeleteListener {
+        fun onTaskDeleted()
+    }
+
     private lateinit var viewModel: TodoDetailsViewModel
     private lateinit var recyclerView: RecyclerView
     private lateinit var fabSave: FloatingActionButton
@@ -38,23 +44,21 @@ class TaskDetailsFragment : Fragment() {
     private lateinit var dateHeader: TextView
     private lateinit var taskWithItems: TaskWithItems
     var saveItemListener: SaveItemListener? = null
+    var listener: TaskDeleteListener? = null
     private val taskDetailsAdapter: TaskDetailsAdapter = TaskDetailsAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //instance of database
         setHasOptionsMenu(true)
         val application = requireNotNull(this.activity).application
         val dataSource = TasksDatabase.getInstance(
             application
         ).tasksDatabaseDao
-        //instance of the ViewModelFactory
         val viewModelFactory =
             TodoDetailsViewModelFactory(
                 dataSource,
                 application
             )
-        //instance of ViewModel
         viewModel = ViewModelProvider(this, viewModelFactory).get(TodoDetailsViewModel::class.java)
     }
     override fun onCreateView(
@@ -66,7 +70,7 @@ class TaskDetailsFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.menu_calendar_fagment, menu)
+        inflater.inflate(R.menu.menu_main, menu)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -110,6 +114,34 @@ class TaskDetailsFragment : Fragment() {
         val currentDate = Instant.ofEpochMilli(date).atOffset(ZoneOffset.UTC)
             .toLocalDate().format(DateTimeFormatter.ofPattern("MMM d"))
         dateHeader.text = currentDate
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_delete -> {
+                showDeleteTaskConfirmationDialog(taskWithItems.task)
+                true
+            }
+            else -> false
+        }
+    }
+
+    private fun showDeleteTaskConfirmationDialog(task: Task) {
+        AlertDialog.Builder(context)
+            .setMessage("Do you want to delete this list?")
+            .setPositiveButton("Yes", DialogInterface.OnClickListener { dialog, which ->
+                lifecycleScope.launch {
+                    viewModel.deleteTaskWithItems(task)
+                    withContext(Dispatchers.Main) {
+                        listener?.onTaskDeleted()
+                    }
+                }
+                return@OnClickListener
+            })
+            .setNegativeButton("No", DialogInterface.OnClickListener { dialog, which ->
+                return@OnClickListener
+            })
+            .show()
     }
 
     private fun renderTask(taskWithItems: TaskWithItems) {

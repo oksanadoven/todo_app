@@ -45,8 +45,8 @@ class SearchFragment : Fragment() {
         val rootView = inflater.inflate(R.layout.fragment_search, container, false)
         recyclerView = rootView.findViewById(R.id.search_screen_recycler_view)
         recyclerView.adapter = searchResultsAdapter
-        recyclerView.layoutManager =
-            StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        val layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        recyclerView.layoutManager = layoutManager
         viewModel.taskItemsLiveData.observe(this, { taskList ->
             searchResultsAdapter.submitList(taskList)
         })
@@ -66,7 +66,7 @@ class SearchFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.action_discard_selection -> {
+            R.id.action_clear_search -> {
                 listener?.searchDiscardRequested()
                 true
             }

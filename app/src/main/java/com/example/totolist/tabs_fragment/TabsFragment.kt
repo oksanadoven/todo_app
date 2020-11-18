@@ -27,12 +27,10 @@ class TabsFragment : Fragment(R.layout.fragment_tabs) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // Instantiate a ViewPager2 and a PagerAdapter
         viewPager = view.findViewById(R.id.view_pager)
         viewPager.isUserInputEnabled = false
         val pagerFragmentAdapter = ViewPagerFragmentAdapter(childFragmentManager, this.lifecycle)
         viewPager.adapter = pagerFragmentAdapter
-        // Attaching tab mediator
         val tabs = view.findViewById<TabLayout>(R.id.tabs)
         TabLayoutMediator(tabs, viewPager) { tab, position ->
             tab.text = tabTitles[position]

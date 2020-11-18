@@ -131,46 +131,13 @@ class MainActivity : AppCompatActivity() {
                     supportFragmentManager.popBackStack()
                 }
             }
+            fragment.listener = object : TaskDetailsFragment.TaskDeleteListener {
+                override fun onTaskDeleted() {
+                    supportFragmentManager.popBackStack()
+                }
+            }
+            invalidateOptionsMenu()
         }
-        /*if (fragment is TaskListFragment) {
-            fragment.listener = object : TaskListFragment.Listener {
-                override fun onTaskSelected(id: Long, date: Long) {
-                    openTaskScreen(id, date)
-                }
-            }
-            val observer = Observer<TaskListMode> { mode ->
-                val checkedItemsText = findViewById<TextView>(R.id.checked_items_text)
-                val searchField = findViewById<EditText>(R.id.search_field)
-                when (mode) {
-                    is TaskListMode.Select -> {
-                        supportActionBar?.setDisplayShowTitleEnabled(false)
-                        checkedItemsText.text = "${mode.selectedItemsCount} selected"
-                    }
-                    is TaskListMode.Normal -> {
-                        checkedItemsText.text = ""
-                        searchField.isVisible = false
-                        supportActionBar?.setDisplayShowTitleEnabled(true)
-                    }
-                    is TaskListMode.Search -> {
-                        supportActionBar?.setDisplayShowTitleEnabled(false)
-                        searchField.isVisible = true
-                        searchField.setText("", TextView.BufferType.EDITABLE)
-                        searchField.doOnTextChanged { text, _, _, _ ->
-                            fragment.setQuery(text.toString())
-                        }
-                        searchField.setOnFocusChangeListener { v, hasFocus ->
-                            if (v.id == R.id.search_field && !hasFocus) {
-                                val inputMethodManager: InputMethodManager =
-                                    getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                                inputMethodManager.hideSoftInputFromWindow(v.windowToken, 0)
-                            }
-                        }
-                    }
-                }
-                invalidateOptionsMenu()
-            }
-            fragment.mode.observe(this, observer)
-        }*/
     }
 
     private fun setUpSearchField() {
@@ -205,31 +172,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
         val isSearchModeOn = mode.value is TaskListMode.Search
-        menu.findItem(R.id.action_discard_selection).isVisible = isSearchModeOn
-        menu.findItem(R.id.icon_action_search).isVisible =
+        menu.findItem(R.id.action_search).isVisible =
+            (!isSearchModeOn && this.supportFragmentManager.findFragmentByTag(DETAILS_FRAGMENT_TAG) == null)
+        menu.findItem(R.id.action_add_new_task).isVisible =
             (!isSearchModeOn && this.supportFragmentManager.findFragmentByTag(DETAILS_FRAGMENT_TAG) == null)
         searchField.isVisible = isSearchModeOn
-        menu.findItem(R.id.icon_action_add).isVisible =
-            (!isSearchModeOn && this.supportFragmentManager.findFragmentByTag(DETAILS_FRAGMENT_TAG) == null)
-        if (isSearchModeOn && this.supportFragmentManager.findFragmentByTag(DETAILS_FRAGMENT_TAG) != null) {
-            menu.findItem(R.id.icon_action_add).isVisible = false
-            searchField.isVisible = false
-            menu.findItem(R.id.action_discard_selection).isVisible = false
-            supportActionBar?.setDisplayShowTitleEnabled(true)
-        }
+        menu.findItem(R.id.action_clear_search).isVisible = isSearchModeOn
+        prepareMenuForDetailsFragment(isSearchModeOn, menu)
         supportActionBar?.setDisplayShowTitleEnabled(!isSearchModeOn)
         return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.icon_action_search -> {
+            R.id.action_search -> {
                 if (isSearchModeEnabled.value == false) {
                     isSearchModeEnabled.value = true
                 }
                 true
             }
-            R.id.action_discard_selection -> {
+            R.id.action_clear_search -> {
                 if (mode.value is TaskListMode.Search) {
                     isSearchModeEnabled.value = false
                 }
@@ -239,12 +201,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-/*    override fun onBackPressed() {
-        if (viewPager.currentItem == 0) {
-            super.onBackPressed()
-        } else {
-            viewPager.currentItem -= 1
+    private fun prepareMenuForDetailsFragment(isSearchModeOn: Boolean, menu: Menu) {
+        if (isSearchModeOn && this.supportFragmentManager.findFragmentByTag(DETAILS_FRAGMENT_TAG) != null) {
+            menu.findItem(R.id.action_add_new_task).isVisible = false
+            searchField.isVisible = false
+            menu.findItem(R.id.action_clear_search).isVisible = false
+            supportActionBar?.setDisplayShowTitleEnabled(true)
         }
-    }*/
+        menu.findItem(R.id.action_delete).isVisible =
+            (this.supportFragmentManager.findFragmentByTag(DETAILS_FRAGMENT_TAG) != null)
+    }
 
 }

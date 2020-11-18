@@ -50,7 +50,7 @@ class MonthFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.menu_calendar_fagment, menu)
+        inflater.inflate(R.menu.menu_main, menu)
     }
 
     override fun onCreateView(
@@ -113,11 +113,11 @@ class MonthFragment : Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.icon_action_add -> {
+            R.id.action_add_new_task -> {
                 listener?.onActionAddSelected(0L, viewModel.dateLiveData.value!!)
                 true
             }
-            R.id.icon_action_search -> {
+            R.id.action_search -> {
                 searchListener?.searchActionSelected()
                 true
             }
