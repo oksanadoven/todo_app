@@ -6,6 +6,7 @@ import com.example.totolist.database.TasksDatabaseDao
 import com.example.totolist.month_fragment.CalendarListItem
 import com.example.totolist.month_fragment.CalendarTaskCheckboxItem
 import com.example.totolist.month_fragment.CalendarTaskHeaderItem
+import com.example.totolist.month_fragment.TaskGroupItem
 
 class TaskListForDateViewModel(dataSource: TasksDatabaseDao) : ViewModel() {
 
@@ -19,6 +20,12 @@ class TaskListForDateViewModel(dataSource: TasksDatabaseDao) : ViewModel() {
                 CalendarTaskCheckboxItem(taskItem)
             }
             items.addAll(taskItems)
+            val group = if (taskWithItems.task.taskGroupId != 0L) {
+                taskWithItems.group?.let { TaskGroupItem(it) }
+            } else null
+            if (group != null) {
+                items.add(group)
+            }
             items
         }
     }

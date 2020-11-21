@@ -31,7 +31,7 @@ class SearchFragment : Fragment() {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
         val application = requireNotNull(this.activity).application
-        val dataSource = TasksDatabase.getInstance(application).tasksDatabaseDao
+        val dataSource = TasksDatabase.getInstance(application).taskDBDao()
         val viewModelFactory = SearchViewModelFactory(dataSource)
         viewModel = ViewModelProvider(requireActivity(), viewModelFactory)
             .get(SearchViewModel::class.java)

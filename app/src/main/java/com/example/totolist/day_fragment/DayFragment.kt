@@ -44,7 +44,7 @@ class DayFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val application = requireNotNull(this.activity).application
-        val dataSource = TasksDatabase.getInstance(application).tasksDatabaseDao
+        val dataSource = TasksDatabase.getInstance(application).taskDBDao()
         val viewModelFactory = CalendarViewModelFactory(dataSource)
         viewModel = ViewModelProvider(
             requireActivity(),

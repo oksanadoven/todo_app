@@ -38,7 +38,7 @@ class MonthFragment : Fragment() {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
         val application = requireNotNull(this.activity).application
-        val dataSource = TasksDatabase.getInstance(application).tasksDatabaseDao
+        val dataSource = TasksDatabase.getInstance(application).taskDBDao()
         //Instance of the ViewModel Factory
         val viewModelFactory = CalendarViewModelFactory(dataSource)
         //Instance of the ViewModel

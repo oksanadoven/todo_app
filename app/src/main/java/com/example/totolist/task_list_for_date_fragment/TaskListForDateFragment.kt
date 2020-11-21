@@ -1,6 +1,5 @@
 package com.example.totolist.task_list_for_date_fragment
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.os.Bundle
@@ -19,13 +18,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.totolist.R
-import com.example.totolist.TaskListItem
 import com.example.totolist.database.Task
+import com.example.totolist.database.TaskListItem
 import com.example.totolist.database.TasksDatabase
 import com.example.totolist.month_fragment.CalendarListItem
 import com.example.totolist.month_fragment.CalendarTaskCheckboxItem
 import com.example.totolist.month_fragment.CalendarTaskHeaderItem
-import com.example.totolist.utils.TaskListDivider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -55,7 +53,7 @@ class TaskListForDateFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val application = requireNotNull(this.activity).application
-        val dataSource = TasksDatabase.getInstance(application).tasksDatabaseDao
+        val dataSource = TasksDatabase.getInstance(application).taskDBDao()
         val viewModelFactory = TaskListForDateViewModelFactory(dataSource)
         taskListForDateViewModel =
             ViewModelProvider(this, viewModelFactory).get(TaskListForDateViewModel::class.java)
@@ -78,7 +76,7 @@ class TaskListForDateFragment : Fragment() {
                 syncCalendarItemsWithDate()
             }
         }
-        recyclerView.addItemDecoration(TaskListDivider(activity as Activity))
+        //recyclerView.addItemDecoration(TaskListDivider(activity as Activity))
         calendarListAdapter.listener = object : CalendarListAdapter.OnItemChecked {
             override fun onItemChecked(itemId: Long, isDone: Boolean) {
                 lifecycleScope.launch {
@@ -102,7 +100,7 @@ class TaskListForDateFragment : Fragment() {
     private fun showDeleteTaskConfirmationDialog(task: Task) {
         AlertDialog.Builder(context)
             .setMessage("Do you want to delete this list?")
-            .setPositiveButton("Yes", DialogInterface.OnClickListener { dialog, which ->
+            .setPositiveButton("Yes", DialogInterface.OnClickListener { _, _ ->
                 lifecycleScope.launch {
                     taskListForDateViewModel.deleteTask(task)
                     withContext(Dispatchers.Main) {
@@ -111,7 +109,7 @@ class TaskListForDateFragment : Fragment() {
                 }
                 return@OnClickListener
             })
-            .setNegativeButton("No", DialogInterface.OnClickListener { dialog, which ->
+            .setNegativeButton("No", DialogInterface.OnClickListener { _, _ ->
                 return@OnClickListener
             })
             .show()

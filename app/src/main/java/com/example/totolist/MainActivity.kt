@@ -15,6 +15,7 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.example.totolist.details.TaskDetailsFragment
+import com.example.totolist.goups.GroupsFragment
 import com.example.totolist.search_fragment.SearchFragment
 import com.example.totolist.tabs_fragment.TabsFragment
 import com.example.totolist.utils.TaskListMode
@@ -126,6 +127,18 @@ class MainActivity : AppCompatActivity() {
             invalidateOptionsMenu()
         }
         if (fragment is TaskDetailsFragment) {
+            fragment.addGroupListener = object : TaskDetailsFragment.AddGroupListener {
+                override fun onAddGroupForTask(groupId: Long) {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, GroupsFragment().apply {
+                            arguments = Bundle().apply {
+                                putLong(GroupsFragment.GROUP_ID, groupId)
+                            }
+                        })
+                        .addToBackStack("")
+                        .commit()
+                }
+            }
             fragment.saveItemListener = object : TaskDetailsFragment.SaveItemListener {
                 override fun onItemSaved() {
                     supportFragmentManager.popBackStack()

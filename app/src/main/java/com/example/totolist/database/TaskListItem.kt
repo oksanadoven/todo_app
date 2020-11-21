@@ -1,6 +1,4 @@
-package com.example.totolist
-
-import com.example.totolist.database.TaskWithItems
+package com.example.totolist.database
 
 data class TaskListItem(
     var taskWithItems: TaskWithItems,

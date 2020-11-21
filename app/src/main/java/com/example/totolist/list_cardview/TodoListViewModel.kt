@@ -2,7 +2,7 @@ package com.example.totolist.list_cardview
 
 import android.app.Application
 import androidx.lifecycle.*
-import com.example.totolist.TaskListItem
+import com.example.totolist.database.TaskListItem
 import com.example.totolist.database.TasksDatabaseDao
 import kotlinx.coroutines.launch
 

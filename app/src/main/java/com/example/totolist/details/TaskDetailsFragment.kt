@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.*
 import android.widget.EditText
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -37,14 +38,20 @@ class TaskDetailsFragment : Fragment() {
         fun onTaskDeleted()
     }
 
+    interface AddGroupListener {
+        fun onAddGroupForTask(groupId : Long)
+    }
+
     private lateinit var viewModel: TodoDetailsViewModel
     private lateinit var recyclerView: RecyclerView
     private lateinit var fabSave: FloatingActionButton
     private lateinit var headerText: EditText
     private lateinit var dateHeader: TextView
+    private lateinit var groupCard: CardView
     private lateinit var taskWithItems: TaskWithItems
     var saveItemListener: SaveItemListener? = null
     var listener: TaskDeleteListener? = null
+    var addGroupListener: AddGroupListener? = null
     private val taskDetailsAdapter: TaskDetailsAdapter = TaskDetailsAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,12 +60,8 @@ class TaskDetailsFragment : Fragment() {
         val application = requireNotNull(this.activity).application
         val dataSource = TasksDatabase.getInstance(
             application
-        ).tasksDatabaseDao
-        val viewModelFactory =
-            TodoDetailsViewModelFactory(
-                dataSource,
-                application
-            )
+        ).taskDBDao()
+        val viewModelFactory = TodoDetailsViewModelFactory(dataSource)
         viewModel = ViewModelProvider(this, viewModelFactory).get(TodoDetailsViewModel::class.java)
     }
     override fun onCreateView(
@@ -79,6 +82,7 @@ class TaskDetailsFragment : Fragment() {
         headerText = view.findViewById(R.id.edit_text_header)
         fabSave = view.findViewById(R.id.fab_save)
         dateHeader = view.findViewById(R.id.date_header)
+        groupCard = view.findViewById(R.id.details_group_item)
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -107,9 +111,12 @@ class TaskDetailsFragment : Fragment() {
                 Task(
                     header = "",
                     date = dateUTC
-                ), emptyList()
+                ), emptyList(), group = null
             )
             renderTask(taskWithItems)
+        }
+        groupCard.setOnClickListener {
+            addGroupListener?.onAddGroupForTask(taskWithItems.task.taskGroupId)
         }
         val currentDate = Instant.ofEpochMilli(date).atOffset(ZoneOffset.UTC)
             .toLocalDate().format(DateTimeFormatter.ofPattern("MMM d"))

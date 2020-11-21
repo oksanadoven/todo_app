@@ -15,15 +15,38 @@ import com.example.totolist.database.Task
 import com.example.totolist.month_fragment.CalendarListItem
 import com.example.totolist.month_fragment.CalendarTaskCheckboxItem
 import com.example.totolist.month_fragment.CalendarTaskHeaderItem
+import com.example.totolist.month_fragment.TaskGroupItem
 
-class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolder>(
-    TasksDiffCallback()
-) {
-
-    companion object {
-        private const val TASK_HEADER_ID = "TASK_HEADER_ID"
-        private const val TASK_CHECKBOX_ID = "TASK_CHECKBOX_ID"
+private val diffCallback = object : DiffUtil.ItemCallback<CalendarListItem>() {
+    override fun areItemsTheSame(
+        oldItem: CalendarListItem,
+        newItem: CalendarListItem
+    ): Boolean {
+        return if (oldItem is CalendarTaskHeaderItem && newItem is CalendarTaskHeaderItem) {
+            oldItem.task.id == newItem.task.id
+        } else if (oldItem is CalendarTaskCheckboxItem && newItem is CalendarTaskCheckboxItem) {
+            oldItem.item.id == newItem.item.id
+        } else {
+            false
+        }
     }
+
+    override fun areContentsTheSame(
+        oldItem: CalendarListItem,
+        newItem: CalendarListItem
+    ): Boolean {
+        return if (oldItem is CalendarTaskHeaderItem && newItem is CalendarTaskHeaderItem) {
+            oldItem.task == newItem.task
+        } else if (oldItem is CalendarTaskCheckboxItem && newItem is CalendarTaskCheckboxItem) {
+            oldItem.item == newItem.item
+        } else {
+            false
+        }
+    }
+
+}
+
+class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolder>(diffCallback) {
 
     interface OnItemChecked {
         fun onItemChecked(itemId: Long, isDone: Boolean)
@@ -73,33 +96,20 @@ class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolde
 
     }
 
-    class TasksDiffCallback : DiffUtil.ItemCallback<CalendarListItem>() {
-        override fun areItemsTheSame(
-            oldItem: CalendarListItem,
-            newItem: CalendarListItem
-        ): Boolean {
-            return if (oldItem is CalendarTaskHeaderItem && newItem is CalendarTaskHeaderItem) {
-                oldItem.task.id == newItem.task.id
-            } else if (oldItem is CalendarTaskCheckboxItem && newItem is CalendarTaskCheckboxItem) {
-                oldItem.item.id == newItem.item.id
-            } else {
-                false
+    class TaskGroupItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        companion object {
+            fun create(parent: ViewGroup): TaskGroupItemViewHolder {
+                val itemView = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.group_item, parent, false)
+                return TaskGroupItemViewHolder(itemView)
             }
         }
 
-        override fun areContentsTheSame(
-            oldItem: CalendarListItem,
-            newItem: CalendarListItem
-        ): Boolean {
-            return if (oldItem is CalendarTaskHeaderItem && newItem is CalendarTaskHeaderItem) {
-                oldItem.task == newItem.task
-            } else if (oldItem is CalendarTaskCheckboxItem && newItem is CalendarTaskCheckboxItem) {
-                oldItem.item == newItem.item
-            } else {
-                false
-            }
-        }
+        val groupName: TextView = itemView.findViewById(R.id.group_name)
 
+        fun bind(item: TaskGroupItem) {
+            groupName.text = item.group.name
+        }
     }
 
     var listener: OnItemChecked? = null
@@ -143,16 +153,29 @@ class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolde
                 }
                 holder
             }
+            R.layout.group_item -> {
+                val holder = TaskGroupItemViewHolder.create(parent)
+                val currentItem = getItem(holder.adapterPosition) as TaskGroupItem
+                holder.groupName.setOnClickListener {
+                }
+                holder
+            }
             else -> throw IllegalArgumentException("Unknown view type")
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val currentItem = getItem(position)
-        if (holder is CalendarHeaderViewHolder) {
-            holder.bind(currentItem as CalendarTaskHeaderItem)
-        } else if (holder is CalendarCheckboxViewHolder) {
-            holder.bind(currentItem as CalendarTaskCheckboxItem)
+        when (holder) {
+            is CalendarHeaderViewHolder -> {
+                holder.bind(currentItem as CalendarTaskHeaderItem)
+            }
+            is CalendarCheckboxViewHolder -> {
+                holder.bind(currentItem as CalendarTaskCheckboxItem)
+            }
+            is TaskGroupItemViewHolder -> {
+                holder.bind(currentItem as TaskGroupItem)
+            }
         }
     }
 }

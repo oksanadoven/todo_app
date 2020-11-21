@@ -33,7 +33,21 @@ data class Task(
     @ColumnInfo(name = "title")
     var header: String,
     @ColumnInfo(name = "date")
-    val date: Long
+    val date: Long,
+    @ColumnInfo(name = "group_id")
+    val taskGroupId: Long = 0L
+)
+
+@Entity(
+    tableName = "groups"
+)
+data class Group(
+    @PrimaryKey(autoGenerate = true)
+    var groupId: Long,
+    @ColumnInfo(name = "title")
+    var name: String,
+    @ColumnInfo(name = "color")
+    var color: String
 )
 
 data class TaskWithItems(
@@ -43,5 +57,10 @@ data class TaskWithItems(
         parentColumn = "id",
         entityColumn = "task_id"
     )
-    var items: List<TaskItem>
+    var items: List<TaskItem>,
+    @Relation(
+        parentColumn = "group_id",
+        entityColumn = "groupId"
+    )
+    var group: Group?
 )

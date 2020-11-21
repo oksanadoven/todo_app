@@ -1,16 +1,12 @@
 package com.example.totolist.details
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import com.example.totolist.database.Task
 import com.example.totolist.database.TaskItem
 import com.example.totolist.database.TaskWithItems
 import com.example.totolist.database.TasksDatabaseDao
 
-class TodoDetailsViewModel(
-    dataSource: TasksDatabaseDao,
-    application: Application
-) : AndroidViewModel(application) {
+class TodoDetailsViewModel(dataSource: TasksDatabaseDao, ) : ViewModel() {
 
     private val database = dataSource
 
