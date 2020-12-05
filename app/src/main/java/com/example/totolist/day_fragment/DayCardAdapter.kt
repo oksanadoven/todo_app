@@ -49,7 +49,7 @@ class DayCardAdapter : ListAdapter<CalendarDay, DayCardAdapter.DayCardViewHolder
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DayCardViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val itemView = inflater.inflate(R.layout.calendar_day_card, parent, false)
+        val itemView = inflater.inflate(R.layout.day_card, parent, false)
         val holder = DayCardViewHolder(itemView)
         itemView.setOnClickListener {
             val position = holder.adapterPosition

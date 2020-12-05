@@ -9,7 +9,7 @@ import com.example.totolist.utils.ioThread
 
 @Database(
     entities = [Task::class, TaskItem::class, Group::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class TasksDatabase : RoomDatabase() {
@@ -43,7 +43,7 @@ abstract class TasksDatabase : RoomDatabase() {
                             getInstance(context).taskDBDao().insertGroup(
                                 Group(
                                     name = "No Group",
-                                    color = "#757575",
+                                    color = "#C9C9C9",
                                     groupId = 0L
                                 )
                             )
@@ -52,5 +52,6 @@ abstract class TasksDatabase : RoomDatabase() {
                 })
                 .fallbackToDestructiveMigration()
                 .build()
+
     }
 }

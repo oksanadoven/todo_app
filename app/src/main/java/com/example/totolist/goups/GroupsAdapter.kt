@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -29,47 +28,63 @@ private val diffCallback = object : DiffUtil.ItemCallback<TaskGroupItem>() {
 class GroupsAdapter : ListAdapter<TaskGroupItem, GroupsAdapter.GroupItemViewHolder>(diffCallback) {
 
     interface SetTaskItemGroupListener {
-        fun onGroupSelected(oldSelected: Group?, newSelected: Group)
+        fun onGroupSelected(oldSelected: Group, newSelected: Group)
     }
 
     class GroupItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         companion object {
-            fun create(parent: ViewGroup) : GroupItemViewHolder {
+            fun create(parent: ViewGroup): GroupItemViewHolder {
                 val itemView = LayoutInflater.from(parent.context)
                     .inflate(R.layout.groups_list_item, parent, false)
                 return GroupItemViewHolder(itemView)
             }
         }
 
-        private val groupColor : ImageView = itemView.findViewById(R.id.rw_group_color)
-        private val groupName : TextView = itemView.findViewById(R.id.rw_group_name)
-        private val groupCheckbox : CheckBox = itemView.findViewById(R.id.rw_group_checkbox)
+        private val groupColor: ImageView = itemView.findViewById(R.id.rw_group_color)
+        val groupCheckbox: CheckBox = itemView.findViewById(R.id.rw_group_checkbox)
 
-        fun bind(item : TaskGroupItem) {
+        fun bind(item: TaskGroupItem) {
             groupColor.setColorFilter(Color.parseColor(item.group.color))
-            groupName.text = item.group.name
             groupCheckbox.isChecked = item.isSelected
+            groupCheckbox.text = item.group.name
         }
     }
 
-    var setGroupListener : SetTaskItemGroupListener? = null
+    var setGroupListener: SetTaskItemGroupListener? = null
+    private var lastChecked: CheckBox? = null
+    private var lastCheckedPos = 0
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroupItemViewHolder {
         val holder = GroupItemViewHolder.create(parent)
-        holder.itemView.setOnClickListener {
+        holder.groupCheckbox.setOnCheckedChangeListener { buttonView, isChecked ->
             val position = holder.adapterPosition
             val item = getItem(position)
+            if (buttonView.isChecked == isChecked) {
+                buttonView.isChecked = isChecked
+                if (lastChecked != null) {
+                    lastChecked!!.isChecked = false
+                }
+                lastChecked = holder.groupCheckbox
+                lastCheckedPos = position
+            } else {
+                lastChecked = null
+            }
             val previousSelected = currentList.find { it.isSelected }
-            previousSelected?.isSelected = false
-            item.isSelected = holder.itemView.isSelected
-            setGroupListener?.onGroupSelected(previousSelected?.group, item.group)
+                ?: currentList.find { it.group.name == "No Group" }
+            previousSelected!!.isSelected = false
+            item.isSelected = buttonView.isChecked
+            setGroupListener?.onGroupSelected(previousSelected.group, item.group)
         }
         return holder
     }
 
     override fun onBindViewHolder(holder: GroupItemViewHolder, position: Int) {
         val currentItem = getItem(position)
+        if (position == 0 && holder.groupCheckbox.isChecked) {
+            lastChecked = holder.groupCheckbox
+            lastCheckedPos = 0
+        }
         holder.bind(currentItem)
     }
 

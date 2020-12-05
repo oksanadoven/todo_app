@@ -79,8 +79,10 @@ class TaskDetailsAdapter : ListAdapter<TaskItem, TaskDetailsAdapter.TaskDetailsV
     }
 
     private fun deleteTaskItem(position: Int) {
-        val newItemsList = currentList.minus(getItem(position))
-        submitList(newItemsList)
+        if (position != RecyclerView.NO_POSITION) {
+            val newItemsList = currentList.minus(getItem(position))
+            submitList(newItemsList)
+        }
     }
 
     override fun onBindViewHolder(holder: TaskDetailsViewHolder, position: Int) {

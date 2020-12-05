@@ -8,7 +8,7 @@ class TaskGroupItem(
     var isSelected: Boolean = false
 ) : CalendarListItem {
     override fun getLayoutResId(): Int {
-        return R.layout.group_item
+        return R.layout.calendar_task_group_item
     }
 
     override fun compareTo(other: CalendarListItem): Int {

@@ -13,4 +13,16 @@
     <color name="colorTextSecondary">#757575</color>
     <color name="colorCheckedItem">#faebee</color>
     <color name="semitransparent_white">#F2F4F4F4</color>
+
+    <color name="Red">#FF0000</color>
+    <color name="Orange">#FFA500</color>
+    <color name="Blue">#4169E1</color>
+    <color name="Yellow">#fdee00</color>
+    <color name="Green">#00FF7F</color>
+    <color name="Purple">#9370DB</color>
+    <color name="Pink">#FFB6C1</color>
+    <color name="Teal">#008080</color>
+    <color name="Olive">#808000</color>
+    <color name="Brown">#8B4513</color>
+
 </resources>

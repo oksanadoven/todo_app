@@ -20,9 +20,7 @@ class TaskListForDateViewModel(dataSource: TasksDatabaseDao) : ViewModel() {
                 CalendarTaskCheckboxItem(taskItem)
             }
             items.addAll(taskItems)
-            val group = if (taskWithItems.task.taskGroupId != 0L) {
-                taskWithItems.group?.let { TaskGroupItem(it) }
-            } else null
+            val group = taskWithItems.group?.let { TaskGroupItem(it) }
             if (group != null) {
                 items.add(group)
             }

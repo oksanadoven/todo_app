@@ -3,6 +3,7 @@ package com.example.totolist.task_list_for_date_fragment
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.doOnAttach
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,6 +23,7 @@ import com.example.totolist.R
 import com.example.totolist.database.Task
 import com.example.totolist.database.TaskListItem
 import com.example.totolist.database.TasksDatabase
+import com.example.totolist.details.TaskDetailsFragment
 import com.example.totolist.month_fragment.CalendarListItem
 import com.example.totolist.month_fragment.CalendarTaskCheckboxItem
 import com.example.totolist.month_fragment.CalendarTaskHeaderItem
@@ -92,6 +95,7 @@ class TaskListForDateFragment : Fragment() {
         calendarListAdapter.openDetailsScreenListener =
             object : CalendarListAdapter.OpenDetailsScreenListener {
                 override fun onListSelectedListener(task: Task) {
+                    //setResult(task.taskGroupId)
                     taskListListener?.openDetailsScreenRequested(task.id, task.date)
                 }
             }
@@ -164,6 +168,13 @@ class TaskListForDateFragment : Fragment() {
             items
         }
         calendarListAdapter.submitList(searchResultList)
+    }
+
+    fun setResult(groupId: Long) {
+        setFragmentResult(TaskDetailsFragment.REQUEST_KEY, Bundle().apply {
+            putLong(TaskDetailsFragment.RESULT_GROUP_ID, groupId)
+            Log.d("AAA", "in TaskListForDate Fragment passing groupId = $groupId")
+        })
     }
 
 

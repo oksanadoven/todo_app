@@ -13,4 +13,18 @@
     <string name="action_icon_search">Search</string>
     <string name="search_hint">Search</string>
     <string name="no_tasks_empty">You have no tasks yet</string>
+
+    <string-array name="HexColors">
+        <item>#c9c9c9</item>
+        <item>#FF0000</item>
+        <item>#FFA500</item>
+        <item>#FDEE00</item>
+        <item>#4169E1</item>
+        <item>#8B4513</item>
+        <item>#00FF7F</item>
+        <item>#9370DB</item>
+        <item>#FFB6C1</item>
+        <item>#008080</item>
+        <item>#808000</item>
+    </string-array>
 </resources>

@@ -17,7 +17,7 @@ class TaskListDivider(context: Context) : RecyclerView.ItemDecoration() {
         val childCount = parent.childCount
         var i = 0
         while (i < childCount) {
-            if (parent.adapter?.getItemViewType(i) == R.layout.group_item) {
+            if (parent.adapter?.getItemViewType(i) == R.layout.calendar_task_group_item) {
                 val child = parent.getChildAt(i)
                 val params: RecyclerView.LayoutParams =
                     child.layoutParams as RecyclerView.LayoutParams

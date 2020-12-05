@@ -1,6 +1,7 @@
 package com.example.totolist.database
 
 import androidx.room.*
+import java.io.Serializable
 
 @Entity(
     tableName = "task_items",
@@ -14,7 +15,7 @@ data class TaskItem(
     var isDone: Boolean,
     @ColumnInfo(name = "task_id")
     val taskId: Long = -1L
-) : Comparable<TaskItem> {
+) : Comparable<TaskItem>, Serializable {
     override fun compareTo(other: TaskItem): Int {
         return when {
             isDone && !other.isDone -> 1
@@ -34,7 +35,7 @@ data class Task(
     var header: String,
     @ColumnInfo(name = "date")
     val date: Long,
-    @ColumnInfo(name = "group_id")
+    @ColumnInfo(name = "task_group_id")
     val taskGroupId: Long = 0L
 )
 
@@ -43,14 +44,14 @@ data class Task(
 )
 data class Group(
     @PrimaryKey(autoGenerate = true)
-    var groupId: Long,
+    var groupId: Long = 0L,
     @ColumnInfo(name = "title")
     var name: String,
     @ColumnInfo(name = "color")
     var color: String
 )
 
-data class TaskWithItems(
+data class TaskWithItems (
     @Embedded
     val task: Task,
     @Relation(
@@ -59,8 +60,8 @@ data class TaskWithItems(
     )
     var items: List<TaskItem>,
     @Relation(
-        parentColumn = "group_id",
+        parentColumn = "task_group_id",
         entityColumn = "groupId"
     )
     var group: Group?
-)
+) : Serializable

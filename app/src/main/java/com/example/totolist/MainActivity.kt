@@ -128,11 +128,12 @@ class MainActivity : AppCompatActivity() {
         }
         if (fragment is TaskDetailsFragment) {
             fragment.addGroupListener = object : TaskDetailsFragment.AddGroupListener {
-                override fun onAddGroupForTask(groupId: Long) {
+                override fun onAddGroupForTask(groupId: Long, taskId: Long) {
                     supportFragmentManager.beginTransaction()
                         .replace(R.id.fragment_container, GroupsFragment().apply {
                             arguments = Bundle().apply {
                                 putLong(GroupsFragment.GROUP_ID, groupId)
+                                putLong(GroupsFragment.TASK_ID, taskId)
                             }
                         })
                         .addToBackStack("")
@@ -151,6 +152,19 @@ class MainActivity : AppCompatActivity() {
             }
             invalidateOptionsMenu()
         }
+        if (fragment is GroupsFragment) {
+            actionBar?.setDisplayHomeAsUpEnabled(true)
+            fragment.onGroupChosenListener = object : GroupsFragment.SetGroupForTaskListener {
+                override fun onGroupSelected() {
+                    supportFragmentManager.popBackStack()
+                }
+            }
+        }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
 
     private fun setUpSearchField() {

@@ -1,5 +1,6 @@
 package com.example.totolist.task_list_for_date_fragment
 
+import android.graphics.Color
 import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
@@ -7,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -100,15 +102,17 @@ class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolde
         companion object {
             fun create(parent: ViewGroup): TaskGroupItemViewHolder {
                 val itemView = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.group_item, parent, false)
+                    .inflate(R.layout.calendar_task_group_item, parent, false)
                 return TaskGroupItemViewHolder(itemView)
             }
         }
 
-        val groupName: TextView = itemView.findViewById(R.id.group_name)
+        private val groupCardView: CardView = itemView.findViewById(R.id.group_card_item)
+        private val groupName: TextView = itemView.findViewById(R.id.group_name)
 
         fun bind(item: TaskGroupItem) {
             groupName.text = item.group.name
+            groupCardView.setCardBackgroundColor(Color.parseColor(item.group.color))
         }
     }
 
@@ -153,12 +157,8 @@ class CalendarListAdapter : ListAdapter<CalendarListItem, RecyclerView.ViewHolde
                 }
                 holder
             }
-            R.layout.group_item -> {
-                val holder = TaskGroupItemViewHolder.create(parent)
-                val currentItem = getItem(holder.adapterPosition) as TaskGroupItem
-                holder.groupName.setOnClickListener {
-                }
-                holder
+            R.layout.calendar_task_group_item -> {
+                TaskGroupItemViewHolder.create(parent)
             }
             else -> throw IllegalArgumentException("Unknown view type")
         }

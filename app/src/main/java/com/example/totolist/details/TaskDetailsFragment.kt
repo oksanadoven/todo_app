@@ -3,21 +3,20 @@ package com.example.totolist.details
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.DialogInterface
+import android.graphics.Color
 import android.os.Bundle
 import android.view.*
 import android.widget.EditText
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.totolist.R
-import com.example.totolist.database.Task
-import com.example.totolist.database.TaskItem
-import com.example.totolist.database.TaskWithItems
-import com.example.totolist.database.TasksDatabase
+import com.example.totolist.database.*
 import com.example.totolist.utils.TaskItemDivider
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +26,11 @@ import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
+import java.io.Serializable
+
+// TODO Добавить state(? - нужен research), который будет контролировать, чтобы у меня не создавались лишние поля, когда я возвращаюсь из GroupsFragment на DetailsFragment
+// TODO Закончить SavedInstanceState() в onCreate() -> добавить связку данных с UI
+// TODO не делать taskId как LiveData, а передать его как аргумент во ViewModel
 
 class TaskDetailsFragment : Fragment() {
 
@@ -39,7 +43,7 @@ class TaskDetailsFragment : Fragment() {
     }
 
     interface AddGroupListener {
-        fun onAddGroupForTask(groupId : Long)
+        fun onAddGroupForTask(groupId: Long, taskId: Long)
     }
 
     private lateinit var viewModel: TodoDetailsViewModel
@@ -47,8 +51,8 @@ class TaskDetailsFragment : Fragment() {
     private lateinit var fabSave: FloatingActionButton
     private lateinit var headerText: EditText
     private lateinit var dateHeader: TextView
-    private lateinit var groupCard: CardView
-    private lateinit var taskWithItems: TaskWithItems
+    private lateinit var groupLabel: CardView
+    private lateinit var groupName: TextView
     var saveItemListener: SaveItemListener? = null
     var listener: TaskDeleteListener? = null
     var addGroupListener: AddGroupListener? = null
@@ -57,13 +61,37 @@ class TaskDetailsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
+        setUpResultListener()
+        if (savedInstanceState != null) {
+            val taskWithItems = savedInstanceState.getSerializable(SAVED_TASK_WITH_ITEMS)
+            val adapterList = savedInstanceState.getSerializable(SAVED_ADAPTER_TASK_LIST)
+            val headerText = savedInstanceState.getString(SAVED_HEADER_TEXT)
+        }
+        val taskId =
+            arguments?.getLong(ARG_TASK_ID) ?: throw IllegalArgumentException("No task id provided")
         val application = requireNotNull(this.activity).application
         val dataSource = TasksDatabase.getInstance(
             application
         ).taskDBDao()
-        val viewModelFactory = TodoDetailsViewModelFactory(dataSource)
+        val viewModelFactory = TodoDetailsViewModel.Factory(dataSource)
         viewModel = ViewModelProvider(this, viewModelFactory).get(TodoDetailsViewModel::class.java)
+        val dateUTC = Instant
+            .ofEpochMilli(arguments?.getLong(ARG_TASK_DATE)!!)
+            .atZone(ZoneId.of("UTC"))
+            .toLocalDate().atStartOfDay()
+            .toInstant(ZoneOffset.UTC)
+            .toEpochMilli()
+        viewModel.setTaskId(taskId)
+        viewModel.setDate(dateUTC)
     }
+
+    private fun setUpResultListener() {
+        setFragmentResultListener(REQUEST_KEY) { _, result ->
+            val groupId = result.getLong(RESULT_GROUP_ID)
+            viewModel.setGroupId(groupId)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -82,51 +110,50 @@ class TaskDetailsFragment : Fragment() {
         headerText = view.findViewById(R.id.edit_text_header)
         fabSave = view.findViewById(R.id.fab_save)
         dateHeader = view.findViewById(R.id.date_header)
-        groupCard = view.findViewById(R.id.details_group_item)
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+        groupLabel = view.findViewById(R.id.details_group_item)
+        groupName = view.findViewById(R.id.details_group_name)
+        val date = arguments?.getLong(ARG_TASK_DATE)
+        val currentDate = Instant.ofEpochMilli(date!!).atOffset(ZoneOffset.UTC)
+            .toLocalDate().format(DateTimeFormatter.ofPattern("MMM d"))
+        dateHeader.text = currentDate
         recyclerView.adapter = taskDetailsAdapter
         recyclerView.layoutManager = LinearLayoutManager(activity, RecyclerView.VERTICAL, false)
         recyclerView.addItemDecoration(TaskItemDivider(activity as Activity))
         fabSave.setOnClickListener {
             saveTaskAndLeave()
         }
-        val taskId =
-            arguments?.getLong(ARG_TASK_ID) ?: throw IllegalArgumentException("No task id provided")
-        val date = arguments?.getLong(ARG_TASK_DATE)
-        val dateUTC =
-            Instant.ofEpochMilli(date!!).atZone(ZoneId.of("UTC")).toLocalDate().atStartOfDay()
-                .toInstant(
-                    ZoneOffset.UTC
-                ).toEpochMilli()
-        if (taskId != 0L) {
-            lifecycleScope.launch {
-                taskWithItems = viewModel.getTaskWithItems(taskId)
-                renderTask(taskWithItems)
-            }
-        } else {
-            taskWithItems = TaskWithItems(
-                Task(
-                    header = "",
-                    date = dateUTC
-                ), emptyList(), group = null
+        viewModel.group.observe(viewLifecycleOwner, { group ->
+            displayGroup(group)
+        })
+        viewModel.taskWithItems.observe(viewLifecycleOwner, { newTaskWithItems ->
+            renderTask(newTaskWithItems)
+        })
+        groupLabel.setOnClickListener {
+            addGroupListener?.onAddGroupForTask(
+                viewModel.taskWithItems.value!!.task.taskGroupId,
+                viewModel.taskWithItems.value!!.task.id
             )
-            renderTask(taskWithItems)
         }
-        groupCard.setOnClickListener {
-            addGroupListener?.onAddGroupForTask(taskWithItems.task.taskGroupId)
-        }
-        val currentDate = Instant.ofEpochMilli(date).atOffset(ZoneOffset.UTC)
-            .toLocalDate().format(DateTimeFormatter.ofPattern("MMM d"))
-        dateHeader.text = currentDate
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        val listItems = taskDetailsAdapter.currentList as Serializable
+        outState.putSerializable(SAVED_TASK_WITH_ITEMS, viewModel.taskWithItems.value)
+        outState.putSerializable(SAVED_ADAPTER_TASK_LIST, listItems)
+        outState.putString(SAVED_HEADER_TEXT, headerText.toString())
+    }
+
+    private fun displayGroup(group: Group) {
+        val groupColor = Color.parseColor(group.color)
+        groupLabel.setCardBackgroundColor(groupColor)
+        groupName.text = group.name
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_delete -> {
-                showDeleteTaskConfirmationDialog(taskWithItems.task)
+                showDeleteTaskConfirmationDialog(viewModel.taskWithItems.value!!.task)
                 true
             }
             else -> false
@@ -155,6 +182,8 @@ class TaskDetailsFragment : Fragment() {
         if (taskWithItems.task.header.isNotEmpty()) {
             headerText.setText(taskWithItems.task.header)
         }
+        if (taskWithItems.group?.name == "No Group") {
+        }
         if (taskWithItems.items.isNotEmpty()) {
             taskDetailsAdapter.submitList(taskWithItems.items)
             taskDetailsAdapter.addEmptyTaskItem()
@@ -169,7 +198,12 @@ class TaskDetailsFragment : Fragment() {
             if (newHeader.isEmpty()) {
                 newHeader = "New list"
             }
-            val task = taskWithItems.task.copy(header = newHeader)
+            var groupId = viewModel.group.value?.groupId
+            if (groupId == null) {
+                groupId = 0L
+            }
+            val task =
+                viewModel.taskWithItems.value!!.task.copy(header = newHeader, taskGroupId = groupId)
             val taskId = if (task.id == 0L) {
                 viewModel.insert(task)
             } else {
@@ -190,5 +224,10 @@ class TaskDetailsFragment : Fragment() {
     companion object {
         const val ARG_TASK_ID = "ARG_TASK_ID"
         const val ARG_TASK_DATE = "ARG_TASK_DATE"
+        const val REQUEST_KEY = "REQUEST_KEY"
+        const val RESULT_GROUP_ID = "RESULT_GROUP_ID"
+        const val SAVED_TASK_WITH_ITEMS = "SAVED_TASK_WITH_ITEMS"
+        const val SAVED_ADAPTER_TASK_LIST = "ADAPTER_TASK_LIST"
+        const val SAVED_HEADER_TEXT = "SAVED_HEADER_TEXT"
     }
 }

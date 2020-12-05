@@ -26,6 +26,9 @@ interface TasksDatabaseDao {
     @Query("UPDATE task_items SET is_done = :isDone WHERE id = :itemId")
     suspend fun updateTaskItemById(itemId: Long, isDone: Boolean)
 
+    @Query("UPDATE tasks SET task_group_id = :groupId WHERE id = :taskId")
+    suspend fun updateGroupForTaskById(taskId: Long, groupId: Long)
+
     @Delete
     suspend fun deleteTask(task: Task)
 
@@ -35,13 +38,12 @@ interface TasksDatabaseDao {
     @Delete
     suspend fun deleteGroup(group: Group)
 
-    @Transaction
     @Query("SELECT * from groups")
-    suspend fun getAllGroups(): List<Group>
+    fun getAllGroups(): LiveData<List<Group>>
 
     @Transaction
     @Query("SELECT * from groups WHERE groupId = :groupId LIMIT 1")
-    suspend fun getGroupById(groupId: Long) : Group
+    fun getGroupById(groupId: Long) : LiveData<Group>
 
     @Transaction
     @Query("SELECT * from tasks")
@@ -49,14 +51,14 @@ interface TasksDatabaseDao {
 
     @Transaction
     @Query("SELECT * from tasks WHERE id = :taskId")
-    suspend fun getTaskWithItems(taskId: Long): TaskWithItems
+    fun getTaskWithItems(taskId: Long): LiveData<TaskWithItems>
 
     @Transaction
     @Query("SELECT * from tasks WHERE date = :date")
     suspend fun getTaskWithItemsByDate(date: Long): List<TaskWithItems>
 
     @Transaction
-    @Query("SELECT * from tasks WHERE group_id = :groupId")
+    @Query("SELECT * from tasks WHERE task_group_id = :groupId")
     suspend fun getTasksWithItemsByGroup(groupId: Long): List<TaskWithItems>
 
     @Transaction

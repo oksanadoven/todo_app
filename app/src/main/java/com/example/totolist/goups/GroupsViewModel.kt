@@ -1,43 +1,62 @@
 package com.example.totolist.goups
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
 import com.example.totolist.database.Group
 import com.example.totolist.database.TasksDatabaseDao
 import com.example.totolist.month_fragment.TaskGroupItem
-import kotlinx.coroutines.launch
+import com.example.totolist.utils.ioThread
 
-class GroupsViewModel(dataSource: TasksDatabaseDao) : ViewModel() {
+class GroupsViewModel(dataSource: TasksDatabaseDao, selectedGroupId: Long) : ViewModel() {
 
+
+    class Factory (
+        private val dataSource: TasksDatabaseDao,
+        private val selectedGroupId: Long
+    ): ViewModelProvider.Factory {
+        @Suppress("unchecked_cast")
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(GroupsViewModel::class.java)) {
+                return GroupsViewModel(dataSource, selectedGroupId) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel Class")
+        }
+    }
     val database = dataSource
 
-    private fun getAllGroups(): List<Group> {
-        var groups = listOf<Group>()
-        viewModelScope.launch {
-            groups = database.getAllGroups()
-        }
-        return groups
-    }
-
-    fun populateTaskGroupList(selectedGroup: Long) : List<TaskGroupItem> {
-        val list = ArrayList<TaskGroupItem>()
-        getAllGroups().forEach { group ->
-            if (group.groupId == selectedGroup) {
-                list.add(TaskGroupItem(group, true))
-            } else {
-                list.add(TaskGroupItem(group, false))
+    val groupsLiveData: LiveData<List<TaskGroupItem>> =
+        Transformations.map(database.getAllGroups()) { groups ->
+            groups.map { item->
+                if (item.groupId == selectedGroupId) {
+                    TaskGroupItem(item, true)
+                } else {
+                    TaskGroupItem(item, false)
+                }
             }
         }
-        return list
-    }
 
     fun addNewGroup(group: Group) {
-        viewModelScope.launch {
+        ioThread {
             database.insertGroup(group)
         }
     }
 
-    suspend fun updateGroup(group: Group) {
-        database.updateGroup(group)
+    fun setSelectedTask(oldGroup: Group, newGroup: Group, taskId: Long) {
+        groupsLiveData.value?.find {
+            if (it.group.groupId == oldGroup.groupId) {
+                it.isSelected = false
+            }
+            if (it.group.groupId == newGroup.groupId) {
+                it.isSelected = true
+            }
+            false
+        }
     }
+
+    suspend fun updateGroupForTask(selectedGroupId: Long, taskId: Long?) {
+        database.updateGroupForTaskById(selectedGroupId, taskId!!)
+    }
+
 }
