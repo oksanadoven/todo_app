@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -17,6 +16,10 @@ import kotlinx.android.synthetic.main.task_list_details_checkboxes.view.*
 class TaskDetailsAdapter : ListAdapter<TaskItem, TaskDetailsAdapter.TaskDetailsViewHolder>(
     TasksDiffCallback()
 ) {
+
+    interface UpdateItemListener {
+        fun updateItem(item: TaskItem)
+    }
 
     class TaskDetailsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val taskCheckbox: CheckBox = itemView.task_checkbox
@@ -34,6 +37,8 @@ class TaskDetailsAdapter : ListAdapter<TaskItem, TaskDetailsAdapter.TaskDetailsV
         }
     }
 
+    var itemListener: UpdateItemListener? = null
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskDetailsViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val itemView = inflater.inflate(R.layout.task_list_details_checkboxes, parent, false)
@@ -41,7 +46,9 @@ class TaskDetailsAdapter : ListAdapter<TaskItem, TaskDetailsAdapter.TaskDetailsV
         holder.taskText.setOnKeyListener { _, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN) {
                 if (keyCode == KeyEvent.KEYCODE_ENTER) {
-                    addEmptyTaskItem()
+                    val item = getItem(holder.adapterPosition)
+                    item.text = holder.taskText.text.toString()
+                    itemListener?.updateItem(item)
                 }
             }
             false
@@ -49,18 +56,12 @@ class TaskDetailsAdapter : ListAdapter<TaskItem, TaskDetailsAdapter.TaskDetailsV
         holder.deleteItem.setOnClickListener {
             deleteTaskItem(holder.adapterPosition)
         }
-        holder.taskText.doOnTextChanged { text, _, _, _ ->
-            val position = holder.adapterPosition
-            if (position != RecyclerView.NO_POSITION) {
-                val item = getItem(position)
-                item.text = text.toString()
-            }
-        }
         holder.taskCheckbox.setOnCheckedChangeListener { compoundButton: CompoundButton, b: Boolean ->
             compoundButton.isChecked = b
             val position = holder.adapterPosition
             val item = getItem(position)
             item.isDone = compoundButton.isChecked
+            itemListener?.updateItem(item)
             if (item.isDone) {
                 holder.taskText.setTextColor(holder.taskText.context.resources.getColor(R.color.colorTextSecondary))
                 holder.taskText.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
@@ -68,14 +69,8 @@ class TaskDetailsAdapter : ListAdapter<TaskItem, TaskDetailsAdapter.TaskDetailsV
                 holder.taskText.setTextColor(holder.taskText.context.resources.getColor(R.color.colorTextPrimary))
                 holder.taskText.paintFlags = 0
             }
-            submitList(currentList.sorted())
         }
         return holder
-    }
-
-    fun addEmptyTaskItem() {
-        val newItemsList = currentList.plus(TaskItem(text = "", isDone = false))
-        submitList(newItemsList)
     }
 
     private fun deleteTaskItem(position: Int) {

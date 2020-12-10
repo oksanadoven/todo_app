@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.lifecycle.*
 import com.example.totolist.database.TaskListItem
 import com.example.totolist.database.TasksDatabaseDao
-import kotlinx.coroutines.launch
 
 
 class TodoListViewModel(
@@ -37,13 +36,6 @@ class TodoListViewModel(
         }
         return originalList.filter { item ->
             item.taskWithItems.task.header.contains(query, true)
-        }
-    }
-
-    fun deleteItems(idList: List<Long>) {
-        viewModelScope.launch {
-            database.batchDeleteTasks(idList)
-            database.batchDeleteItems(idList)
         }
     }
 }

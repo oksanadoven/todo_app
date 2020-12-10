@@ -43,7 +43,7 @@ interface TasksDatabaseDao {
 
     @Transaction
     @Query("SELECT * from groups WHERE groupId = :groupId LIMIT 1")
-    fun getGroupById(groupId: Long) : LiveData<Group>
+    fun getGroupById(groupId: Long): LiveData<Group>
 
     @Transaction
     @Query("SELECT * from tasks")
@@ -62,8 +62,8 @@ interface TasksDatabaseDao {
     suspend fun getTasksWithItemsByGroup(groupId: Long): List<TaskWithItems>
 
     @Transaction
-    suspend fun deleteTaskWithItems(task: Task){
-        batchDeleteItems(listOf(task.id))
+    suspend fun deleteTaskWithItems(task: Task) {
+        deleteTaskItems(task.id)
         deleteTask(task)
     }
 
@@ -72,13 +72,22 @@ interface TasksDatabaseDao {
     suspend fun batchDeleteTasks(idList: List<Long>)
 
     @Transaction
-    @Query("DELETE FROM task_items WHERE task_id IN (:idList)")
-    suspend fun batchDeleteItems(idList: List<Long>)
+    @Query("DELETE FROM task_items WHERE task_id = :taskId")
+    suspend fun deleteTaskItems(taskId: Long)
 
     @Transaction
-    suspend fun deleteAndInsert(task: Task, taskItems: List<TaskItem>, idList: List<Long>) {
-        batchDeleteItems(idList)
-        insertTaskItems(taskItems)
-        updateTask(task)
+    suspend fun insertOrUpdateTask(task: Task, taskItems: List<TaskItem>) {
+        deleteTaskItems(task.id)
+        val taskId : Long
+        if (task.id == 0L) {
+            taskId = insertTask(task)
+        } else {
+            taskId = task.id
+            updateTask(task)
+        }
+        val updatedTaskItems = taskItems.map { taskItem ->
+            taskItem.copy(taskId = taskId)
+        }
+        insertTaskItems(updatedTaskItems)
     }
 }

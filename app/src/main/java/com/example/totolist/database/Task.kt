@@ -36,7 +36,7 @@ data class Task(
     @ColumnInfo(name = "date")
     val date: Long,
     @ColumnInfo(name = "task_group_id")
-    val taskGroupId: Long = 0L
+    val taskGroupId: Long = 1L
 )
 
 @Entity(

@@ -1,76 +1,113 @@
 package com.example.totolist.details
 
+import android.os.Bundle
 import androidx.lifecycle.*
+import androidx.savedstate.SavedStateRegistryOwner
 import com.example.totolist.database.*
 
-class TodoDetailsViewModel(dataSource: TasksDatabaseDao) : ViewModel() {
+class TodoDetailsViewModel(
+    dataSource: TasksDatabaseDao,
+    taskId: Long,
+    date: Long,
+    private val savedState: SavedStateHandle
+) : ViewModel() {
 
+    companion object {
+        const val TASK_WITH_ITEMS = "TASK_WITH_ITEMS"
+    }
+
+    @Suppress("UNCHECKED_CAST")
     class Factory(
-        private val dataSource: TasksDatabaseDao
-    ) : ViewModelProvider.Factory {
-        @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        owner: SavedStateRegistryOwner,
+        defaultArgs: Bundle?,
+        private val dataSource: TasksDatabaseDao,
+        private val taskId: Long,
+        private val dateUTC: Long
+    ) : AbstractSavedStateViewModelFactory(owner, defaultArgs) {
+
+        override fun <T : ViewModel?> create(
+            key: String,
+            modelClass: Class<T>,
+            handle: SavedStateHandle
+        ): T {
             if (modelClass.isAssignableFrom(TodoDetailsViewModel::class.java)) {
-                return TodoDetailsViewModel(dataSource) as T
+                return TodoDetailsViewModel(dataSource, taskId, dateUTC, handle) as T
             }
             throw IllegalArgumentException("Unknown ViewModel Class")
         }
     }
 
     private val database = dataSource
-    private val taskId = MutableLiveData<Long>()
-    val taskWithItems: LiveData<TaskWithItems> = Transformations.switchMap(taskId) { id ->
-        if (id == 0L) {
-            createDefaultLiveData()
+    private val _taskWithItems = MediatorLiveData<TaskWithItems>().apply {
+        if (savedState.contains(TASK_WITH_ITEMS)) {
+            value = savedState.get(TASK_WITH_ITEMS)
+        } else if (taskId == 0L) {
+            value = TaskWithItems(
+                task = Task(
+                    header = "",
+                    date = date
+                ),
+                items = listOf(emptyField()),
+                group = null
+            )
         } else {
-            database.getTaskWithItems(id)
-        }
-    }
-    private val groupId = MediatorLiveData<Long>().apply {
-        addSource(taskWithItems) { task ->
-            val group = task.group
-            if (value == null && group != null) {
-                value = group.groupId
+            val databaseTask = database.getTaskWithItems(taskId)
+            addSource(databaseTask) { task ->
+                value = task.copy(items = task.items.plus(emptyField()))
+                removeSource(databaseTask)
             }
         }
-    }
-    private val date = MutableLiveData<Long>()
-    val group: LiveData<Group> = Transformations.switchMap(groupId) { id ->
-        database.getGroupById(id)
-    }
-
-    private fun createDefaultLiveData(): LiveData<TaskWithItems> {
-        return MutableLiveData<TaskWithItems>().apply {
-            value = TaskWithItems(
-                Task(
-                    header = "",
-                    date = date.value!!
-                ), emptyList(), group = null
-            )
+        observeForever { task ->
+            savedState.set(TASK_WITH_ITEMS, task)
         }
     }
-
-    suspend fun insert(task: Task): Long {
-        return database.insertTask(task)
+    val taskWithItems: LiveData<TaskWithItems> = _taskWithItems
+    val group: LiveData<Group> = Transformations.switchMap(taskWithItems) {
+        database.getGroupById(it.task.taskGroupId)
     }
 
-    suspend fun deleteAndInsert(task: Task, taskItems: List<TaskItem>) {
-        database.deleteAndInsert(task, taskItems, listOf(task.id))
+    suspend fun save() {
+        val current = _taskWithItems.value!!
+        database.insertOrUpdateTask(
+            task = current.task,
+            taskItems = current.items
+        )
     }
 
     suspend fun deleteTaskWithItems(task: Task) {
         database.deleteTaskWithItems(task)
     }
 
+    fun setHeaderText(text: String) {
+        val current = _taskWithItems.value!!
+        if (current.task.header == text) return
+        _taskWithItems.value = current.copy(
+            task = current.task.copy(
+                header = text
+            )
+        )
+    }
+
     fun setGroupId(id: Long) {
-        groupId.postValue(id)
+        val current = taskWithItems.value!!
+        _taskWithItems.value = current.copy(
+            task = current.task.copy(
+                taskGroupId = id
+            )
+        )
     }
 
-    fun setTaskId(id: Long) {
-        taskId.postValue(id)
-    }
+    private fun emptyField() = TaskItem(text = "", isDone = false)
 
-    fun setDate(dateInMs: Long) {
-        date.value = dateInMs
+    fun updateItem(item: TaskItem) {
+        val current = taskWithItems.value!!
+        val itemPosition = current.items.indexOf(item)
+        val newItems = ArrayList(current.items)
+        newItems[itemPosition] = (TaskItem(text = item.text, isDone = item.isDone))
+        var new = current.copy(items = newItems)
+        if (itemPosition == current.items.lastIndex) {
+            new = new.copy(items = new.items.plus(emptyField()))
+        }
+        _taskWithItems.value = new
     }
 }

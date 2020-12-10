@@ -9,6 +9,7 @@ import android.view.*
 import android.widget.EditText
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.ViewModelProvider
@@ -26,11 +27,12 @@ import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
-import java.io.Serializable
 
-// TODO Добавить state(? - нужен research), который будет контролировать, чтобы у меня не создавались лишние поля, когда я возвращаюсь из GroupsFragment на DetailsFragment
-// TODO Закончить SavedInstanceState() в onCreate() -> добавить связку данных с UI
-// TODO не делать taskId как LiveData, а передать его как аргумент во ViewModel
+
+// TODO починить добавление нового таска в списке, когда заходишь в него ->
+// TODO не сохранять пустой таск
+// TODO починить сортировку тасков когда isDone = true
+// TODO починить отрисову выполненных тасков
 
 class TaskDetailsFragment : Fragment() {
 
@@ -62,27 +64,21 @@ class TaskDetailsFragment : Fragment() {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
         setUpResultListener()
-        if (savedInstanceState != null) {
-            val taskWithItems = savedInstanceState.getSerializable(SAVED_TASK_WITH_ITEMS)
-            val adapterList = savedInstanceState.getSerializable(SAVED_ADAPTER_TASK_LIST)
-            val headerText = savedInstanceState.getString(SAVED_HEADER_TEXT)
-        }
         val taskId =
             arguments?.getLong(ARG_TASK_ID) ?: throw IllegalArgumentException("No task id provided")
-        val application = requireNotNull(this.activity).application
-        val dataSource = TasksDatabase.getInstance(
-            application
-        ).taskDBDao()
-        val viewModelFactory = TodoDetailsViewModel.Factory(dataSource)
-        viewModel = ViewModelProvider(this, viewModelFactory).get(TodoDetailsViewModel::class.java)
         val dateUTC = Instant
             .ofEpochMilli(arguments?.getLong(ARG_TASK_DATE)!!)
             .atZone(ZoneId.of("UTC"))
             .toLocalDate().atStartOfDay()
             .toInstant(ZoneOffset.UTC)
             .toEpochMilli()
-        viewModel.setTaskId(taskId)
-        viewModel.setDate(dateUTC)
+        val application = requireNotNull(this.activity).application
+        val dataSource = TasksDatabase.getInstance(
+            application
+        ).taskDBDao()
+        val viewModelFactory =
+            TodoDetailsViewModel.Factory(this, arguments, dataSource, taskId, dateUTC)
+        viewModel = ViewModelProvider(this, viewModelFactory).get(TodoDetailsViewModel::class.java)
     }
 
     private fun setUpResultListener() {
@@ -119,6 +115,11 @@ class TaskDetailsFragment : Fragment() {
         recyclerView.adapter = taskDetailsAdapter
         recyclerView.layoutManager = LinearLayoutManager(activity, RecyclerView.VERTICAL, false)
         recyclerView.addItemDecoration(TaskItemDivider(activity as Activity))
+        taskDetailsAdapter.itemListener = object : TaskDetailsAdapter.UpdateItemListener {
+            override fun updateItem(item: TaskItem) {
+                viewModel.updateItem(item)
+            }
+        }
         fabSave.setOnClickListener {
             saveTaskAndLeave()
         }
@@ -134,14 +135,9 @@ class TaskDetailsFragment : Fragment() {
                 viewModel.taskWithItems.value!!.task.id
             )
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        val listItems = taskDetailsAdapter.currentList as Serializable
-        outState.putSerializable(SAVED_TASK_WITH_ITEMS, viewModel.taskWithItems.value)
-        outState.putSerializable(SAVED_ADAPTER_TASK_LIST, listItems)
-        outState.putString(SAVED_HEADER_TEXT, headerText.toString())
+        headerText.addTextChangedListener { text ->
+            viewModel.setHeaderText(text.toString())
+        }
     }
 
     private fun displayGroup(group: Group) {
@@ -180,41 +176,19 @@ class TaskDetailsFragment : Fragment() {
 
     private fun renderTask(taskWithItems: TaskWithItems) {
         if (taskWithItems.task.header.isNotEmpty()) {
-            headerText.setText(taskWithItems.task.header)
-        }
-        if (taskWithItems.group?.name == "No Group") {
+            val currentSelection = headerText.selectionEnd
+            val text = taskWithItems.task.header
+            headerText.setText(text)
+            headerText.setSelection(currentSelection.coerceIn(0, text.length))
         }
         if (taskWithItems.items.isNotEmpty()) {
             taskDetailsAdapter.submitList(taskWithItems.items)
-            taskDetailsAdapter.addEmptyTaskItem()
-        } else {
-            taskDetailsAdapter.submitList(listOf(TaskItem(text = "", isDone = false)))
         }
     }
 
     private fun saveTaskAndLeave() {
         lifecycleScope.launch {
-            var newHeader = headerText.text.toString()
-            if (newHeader.isEmpty()) {
-                newHeader = "New list"
-            }
-            var groupId = viewModel.group.value?.groupId
-            if (groupId == null) {
-                groupId = 0L
-            }
-            val task =
-                viewModel.taskWithItems.value!!.task.copy(header = newHeader, taskGroupId = groupId)
-            val taskId = if (task.id == 0L) {
-                viewModel.insert(task)
-            } else {
-                task.id
-            }
-            val items = taskDetailsAdapter.currentList
-                .filter { it.text.isNotEmpty() }
-                .map { taskItem ->
-                    taskItem.copy(taskId = taskId)
-                }
-            viewModel.deleteAndInsert(task, items)
+            viewModel.save()
             withContext(Dispatchers.Main) {
                 saveItemListener?.onItemSaved()
             }
@@ -226,8 +200,5 @@ class TaskDetailsFragment : Fragment() {
         const val ARG_TASK_DATE = "ARG_TASK_DATE"
         const val REQUEST_KEY = "REQUEST_KEY"
         const val RESULT_GROUP_ID = "RESULT_GROUP_ID"
-        const val SAVED_TASK_WITH_ITEMS = "SAVED_TASK_WITH_ITEMS"
-        const val SAVED_ADAPTER_TASK_LIST = "ADAPTER_TASK_LIST"
-        const val SAVED_HEADER_TEXT = "SAVED_HEADER_TEXT"
     }
 }

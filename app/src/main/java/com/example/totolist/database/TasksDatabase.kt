@@ -43,8 +43,7 @@ abstract class TasksDatabase : RoomDatabase() {
                             getInstance(context).taskDBDao().insertGroup(
                                 Group(
                                     name = "No Group",
-                                    color = "#C9C9C9",
-                                    groupId = 0L
+                                    color = "#C9C9C9"
                                 )
                             )
                         }
