@@ -19,6 +19,7 @@ data class TaskItem(
     override fun compareTo(other: TaskItem): Int {
         return when {
             isDone && !other.isDone -> 1
+            text.isEmpty() && other.text.isNotEmpty() -> 1
             !isDone && other.isDone -> -1
             else -> 0
         }

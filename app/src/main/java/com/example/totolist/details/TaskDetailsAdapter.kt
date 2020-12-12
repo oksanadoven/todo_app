@@ -61,14 +61,14 @@ class TaskDetailsAdapter : ListAdapter<TaskItem, TaskDetailsAdapter.TaskDetailsV
             val position = holder.adapterPosition
             val item = getItem(position)
             item.isDone = compoundButton.isChecked
-            itemListener?.updateItem(item)
             if (item.isDone) {
                 holder.taskText.setTextColor(holder.taskText.context.resources.getColor(R.color.colorTextSecondary))
                 holder.taskText.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
             } else {
-                holder.taskText.setTextColor(holder.taskText.context.resources.getColor(R.color.colorTextPrimary))
+                holder.taskText.setTextColor(holder.taskText.context.resources.getColor(R.color.design_default_color_on_secondary))
                 holder.taskText.paintFlags = 0
             }
+            itemListener?.updateItem(item)
         }
         return holder
     }

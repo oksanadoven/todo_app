@@ -28,12 +28,6 @@ import org.threeten.bp.ZoneId
 import org.threeten.bp.ZoneOffset
 import org.threeten.bp.format.DateTimeFormatter
 
-
-// TODO починить добавление нового таска в списке, когда заходишь в него ->
-// TODO не сохранять пустой таск
-// TODO починить сортировку тасков когда isDone = true
-// TODO починить отрисову выполненных тасков
-
 class TaskDetailsFragment : Fragment() {
 
     interface SaveItemListener {

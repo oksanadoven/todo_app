@@ -68,9 +68,10 @@ class TodoDetailsViewModel(
 
     suspend fun save() {
         val current = _taskWithItems.value!!
+        val items = current.items.filterNot { it.text.isEmpty() }
         database.insertOrUpdateTask(
             task = current.task,
-            taskItems = current.items
+            taskItems = items
         )
     }
 
@@ -104,7 +105,8 @@ class TodoDetailsViewModel(
         val itemPosition = current.items.indexOf(item)
         val newItems = ArrayList(current.items)
         newItems[itemPosition] = (TaskItem(text = item.text, isDone = item.isDone))
-        var new = current.copy(items = newItems)
+        val sortedItems = newItems.sorted()
+        var new = current.copy(items = sortedItems)
         if (itemPosition == current.items.lastIndex) {
             new = new.copy(items = new.items.plus(emptyField()))
         }
